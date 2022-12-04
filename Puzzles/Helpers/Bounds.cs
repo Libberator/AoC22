@@ -99,7 +99,7 @@ public struct Bounds
     /// <summary>Returns true if <paramref name="y"/> is on or inside the Bounds.</summary>
     public bool IsInVerticalBounds(int y) => y >= YMin && y <= YMax;
     /// <summary>Returns a value to indicate if another bounding box intersects or shares an edge with this bounding box.</summary>
-    public bool Overlaps(Bounds other) => !(other.XMin > XMax || other.XMax < XMin || other.YMin > YMax || other.YMax < YMin);
+    public bool Overlaps(Bounds other) => XMin <= other.XMax && other.XMin <= XMax && YMin <= other.YMax && other.YMin <= YMax;
     /// <summary>Sets the bounds to the min and max value of the box.</summary>
     public void SetMinMax(Vector2Int min, Vector2Int max)
     {
