@@ -12,18 +12,14 @@ public class Day1 : Puzzle
     public override void Setup()
     {
         _data.Clear();
-        int current = 0;
+        _data.Add(0);
         foreach (var line in Utils.ReadFrom(_path))
         {
             if (string.IsNullOrEmpty(line))
-            {
-                if (current != 0) _data.Add(current);
-                current = 0;
-                continue;
-            }
-            if (int.TryParse(line, out var calories)) current += calories;
+                _data.Add(0);
+            else
+                _data[^1] += int.Parse(line);
         }
-        if (current != 0) _data.Add(current); // in case input.txt doesn't end on a newline
     }
 
     public override void SolvePart1() => _logger.Log(_data.Max());

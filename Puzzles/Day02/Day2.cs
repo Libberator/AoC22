@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace AoC22;
 
 public class Day2 : Puzzle
 {
-    private readonly Dictionary<string, int> _data = new();
+    private readonly Dictionary<string, int> _data = new(); // just keeping track of number of occurances for each matchup
 
     private const char ROCK = 'X';
     private const char PAPER = 'Y';
@@ -15,24 +16,20 @@ public class Day2 : Puzzle
     public override void Setup()
     {
         _data.Clear();
-        foreach (var line in Utils.ReadFrom(_path, ignoreWhiteSpace: true))
-            _data.AddToOrCreate(line, 1); // just keeping track of number of occurances for each matchup
+        foreach (var line in Utils.ReadFrom(_path))
+            _data.AddToOrCreate(line, 1);
     }
 
     public override void SolvePart1()
     {
-        var score = 0;
-        foreach (var kvp in _data)
-            score += kvp.Value * (PointsForThrowing(kvp.Key[2]) + PointsForResult(kvp.Key));
-        _logger.Log(score);
+        var total = _data.Aggregate(0, (sum, kvp) => sum + kvp.Value * (PointsForThrowing(kvp.Key[^1]) + PointsForResult(kvp.Key)));
+        _logger.Log(total);
     }
 
     public override void SolvePart2()
     {
-        var score = 0;
-        foreach (var kvp in _data)
-            score += kvp.Value * (PointsForThrowing(UpdatedThrow(kvp.Key)) + PointsForKnownResult(kvp.Key[2]));
-        _logger.Log(score);
+        var total = _data.Aggregate(0, (sum, kvp) => sum + kvp.Value * (PointsForThrowing(UpdatedThrow(kvp.Key)) + PointsForKnownResult(kvp.Key[^1])));
+        _logger.Log(total);
     }
 
     private static int PointsForThrowing(char c) => c switch
