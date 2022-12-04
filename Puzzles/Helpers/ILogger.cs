@@ -8,6 +8,8 @@ public interface ILogger
     public void Log(string msg);
     public void Log(int msg) => Log(msg.ToString());
     public void Log(long msg) => Log(msg.ToString());
+    public void Log(char msg) => Log(msg.ToString());
+    public void Log(object? msg) => Log(msg?.ToString() ?? string.Empty);
 }
 
 public class ConsoleLogger : ILogger
