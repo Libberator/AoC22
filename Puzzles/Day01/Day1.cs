@@ -13,7 +13,7 @@ public class Day1 : Puzzle
     {
         _data.Clear();
         _data.Add(0);
-        foreach (var line in Utils.ReadFrom(_path))
+        foreach (var line in ReadFromFile())
         {
             if (string.IsNullOrEmpty(line))
                 _data.Add(0);

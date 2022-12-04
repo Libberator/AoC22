@@ -58,9 +58,9 @@ public static class Utils
     #region Collection Extensions
 
     /// <summary>
-    /// Adds the value or sets a key-value pair if one does not exist. Returns true if one was already in the dictionary
+    /// Adds the value to an existing key-value pair or creates a new one if one does not exist. Returns true if one was already in the dictionary
     /// </summary>
-    public static bool AddToOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue val) where TValue : INumber<TValue>
+    public static bool AddToExistingOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue val) where TValue : INumber<TValue>
     {
         if (dict.ContainsKey(key))
         {
@@ -118,8 +118,7 @@ public static class Utils
     public static int BinaryToInt(this string s) => Convert.ToInt32(s, 2);
     public static long BinaryToLong(this string s) => Convert.ToInt64(s, 2);
     public static int HexToInt(this string s) => Convert.ToInt32(s, 16);
-
-    // Can also consider Convert.ToString(hexChar, 2), but won't guarantee length of 4
+    /// <summary>Returns a 4-length string of 1's and 0's, given a char from '0' to 'F'. Useful for converting data from a string.</summary>
     public static string HexToBinary(this char hexChar) => hexChar switch
     {
         '0' => "0000",

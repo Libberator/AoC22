@@ -16,8 +16,8 @@ public class Day2 : Puzzle
     public override void Setup()
     {
         _data.Clear();
-        foreach (var line in Utils.ReadFrom(_path))
-            _data.AddToOrCreate(line, 1);
+        foreach (var line in ReadFromFile())
+            _data.AddToExistingOrCreate(line, 1);
     }
 
     public override void SolvePart1()

@@ -9,7 +9,7 @@ public class Day3 : Puzzle
 
     public Day3(ILogger logger, string path) : base(logger, path) { }
 
-    public override void Setup() => _data = Utils.ReadAllLines(_path);
+    public override void Setup() => _data = ReadAllLines();
 
     public override void SolvePart1()
     {
