@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace AoC22;
@@ -18,7 +17,7 @@ public class Day3 : Puzzle
         foreach (var line in _data)
         {
             var half = line.Length >> 1;
-            var charInCommon = CharsInCommon(line[..half], line[half..]).FirstOrDefault();
+            var charInCommon = line[..half].Intersect(line[half..]).FirstOrDefault();
             score += ScoreForChar(charInCommon);
         }
         _logger.Log(score);
@@ -29,19 +28,16 @@ public class Day3 : Puzzle
         int score = 0;
         for (int i = 0; i < _data.Length - 2; i += 3)
         {
-            var charsInCommon = CharsInCommon(_data[i], _data[i + 1]);
-            var charInCommon = CharsInCommon(charsInCommon, _data[i + 2]).FirstOrDefault();
+            var charInCommon = _data[i].Intersect(_data[i + 1]).Intersect(_data[i + 2]).FirstOrDefault();
             score += ScoreForChar(charInCommon);
         }
         _logger.Log(score);
     }
 
-    private static IEnumerable<char> CharsInCommon(IEnumerable<char> a, IEnumerable<char> b) => a.Intersect(b);
-
-    private static int ScoreForChar(char c)
+    private static int ScoreForChar(char c) => c switch
     {
-        if ('a' <= c && c <= 'z') return c - 96; // 'a' is 97, 'z' is 122. Returns 1-26
-        if ('A' <= c && c <= 'Z') return c - 38; // 'A' is 65, 'Z' is 90.  Returns 27-52
-        return 0;
-    }
+        { } when c is >= 'a' and <= 'z' => c - 96, // 'a' is 97, 'z' is 122. Returns 1-26
+        { } when c is >= 'A' and <= 'Z' => c - 38, // 'A' is 65, 'Z' is 90.  Returns 27-52
+        _ => 0,
+    };
 }
