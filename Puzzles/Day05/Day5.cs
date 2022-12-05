@@ -19,21 +19,21 @@ public class Day5 : Puzzle
         for (int i = 1; i <= 9; i++)
             _data[i] = new();
 
-        bool firstHalf = true;
-
+        bool onFirstPart = true;
         foreach (var line in ReadFromFile())
         {
             if (string.IsNullOrEmpty(line))
             {
-                firstHalf = false;
+                onFirstPart = false;
                 continue;
             }
-            if (firstHalf)
+            if (onFirstPart)
             {
-                // Important chars on indices: 1, 5, 9, 13, 17, 21, 25, 29, 33
+                // Important indices: 1, 5, 9, 13, 17, 21, 25, 29, 33
                 for (int i = 1; i < line.Length; i += 4)
                     if (line[i] != ' ')
                         _data[((i - 1) / 4) + 1].Push(line[i]);
+                // Side note: we've also added the numbers 1-9 to the stack
             }
             else
             {
@@ -67,20 +67,19 @@ public class Day5 : Puzzle
 
     private static void MoveFromToMaintainOrder(Dictionary<int, Stack<char>> source, int amount, int from, int to)
     {
-        var doubleStack = new Stack<char>();
+        var temp = new Stack<char>();
         for (int i = 0; i < amount; i++)
-            doubleStack.Push(source[from].Pop());
-        while (doubleStack.Count != 0)
-            source[to].Push(doubleStack.Pop());
+            temp.Push(source[from].Pop());
+        while (temp.Count != 0)
+            source[to].Push(temp.Pop());
     }
 
-    // We make a copy of it so that we're not affecting the original and can run both Parts and/or do performance tests without errors
+    // We make a copy of it so that we're not affecting the original and can run both Parts and also do performance tests
     private static Dictionary<int, Stack<char>> CopyData(Dictionary<int, Stack<char>> source)
     {
         Dictionary<int, Stack<char>> copy = new(9);
         foreach (var kvp in source)
             copy[kvp.Key] = new(kvp.Value); // this correctly *reverses* the order for the stack copy
-
         return copy;
     }
 
@@ -88,7 +87,7 @@ public class Day5 : Puzzle
     {
         var result = new StringBuilder();
         foreach (var kvp in source)
-            result.Append(kvp.Value.Count > 1 ? kvp.Value.Peek() : string.Empty); // the bottom-most is actually the numbers 1 through 9, so we ignore those
+            result.Append(kvp.Value.Count > 1 ? kvp.Value.Peek() : '\0'); // the bottom-most are the numbers 1 through 9, so we ignore those
         return result.ToString();
     }
 }
