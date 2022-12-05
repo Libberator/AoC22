@@ -87,7 +87,7 @@ public class Day5 : Puzzle
     {
         var result = new StringBuilder();
         foreach (var kvp in source)
-            result.Append(kvp.Value.Count > 1 ? kvp.Value.Peek() : '\0'); // the bottom-most are the numbers 1 through 9, so we ignore those
+            result.Append(kvp.Value.Count > 1 ? kvp.Value.Peek() : string.Empty); // the bottom-most are the numbers 1 through 9, so we ignore those
         return result.ToString();
     }
 }
