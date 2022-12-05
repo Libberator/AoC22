@@ -32,7 +32,7 @@ public struct Bounds
 
     /// <summary>
     /// Returns the center point. If the *number of points* on a side is even (even though Size will be odd),
-    /// it rounds down towards lower-left corner.  e.g. If XMin = 1, and XMax = 4, it will return 2 for the XCenter
+    /// it rounds down towards lower end. e.g. If XMin = 1, and XMax = 4, it will return 2 for the Center.X
     /// </summary>
     public Vector2Int Center => Min + Extents;
     /// <summary>
@@ -66,6 +66,8 @@ public struct Bounds
             new(dxLeft < dxRight ? XMin : XMax, y) :
             new(x, dyBot < dyTop ? YMin : YMax);
     }
+    /// <summary>Returns a value to indicate if another Bounds is fully within the bounding box, including sharing an edge.</summary>
+    public bool Contains(Bounds other) => Contains(other.Min) && Contains(other.Max);
     /// <summary>Returns a value to indicate if a point is within the bounding box.</summary>
     public bool Contains(Vector2Int pos) => Contains(pos.X, pos.Y);
     /// <summary>Returns a value to indicate if a point is within the bounding box.</summary>
@@ -95,9 +97,9 @@ public struct Bounds
         YMax += yAmount;
     }
     /// <summary>Returns true if <paramref name="x"/> is on or inside the Bounds.</summary>
-    public bool IsInHorizontalBounds(int x) => x >= XMin && x <= XMax;
+    public bool IsInHorizontalBounds(int x) => XMin <= x && x <= XMax;
     /// <summary>Returns true if <paramref name="y"/> is on or inside the Bounds.</summary>
-    public bool IsInVerticalBounds(int y) => y >= YMin && y <= YMax;
+    public bool IsInVerticalBounds(int y) => YMin <= y && y <= YMax;
     /// <summary>Returns a value to indicate if another bounding box intersects or shares an edge with this bounding box.</summary>
     public bool Overlaps(Bounds other) => XMin <= other.XMax && other.XMin <= XMax && YMin <= other.YMax && other.YMin <= YMax;
     /// <summary>Sets the bounds to the min and max value of the box.</summary>

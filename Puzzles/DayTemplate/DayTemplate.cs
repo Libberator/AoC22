@@ -7,7 +7,7 @@ public class DayTemplate : Puzzle
     public override void Setup()
     { 
         // For parsing and/or caching shared data.
-        // Access file with Utils.ReadFrom(_path) or Utils.ReadAllLines(_path)
+        // Access file with ReadFromFile() for 1 line at a time or ReadAllLines() as a string dump
     }
 
     public override void SolvePart1()
