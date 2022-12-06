@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -8,8 +8,8 @@ namespace AoC22;
 public class Day5 : Puzzle
 {
     private readonly Dictionary<int, Stack<char>> _data = new(9);
-    private readonly List<Instruction> _instructions = new();
-    private record Instruction(int Amount, int From, int To);
+    private readonly List<Move> _instructions = new();
+    private record Move(int Amount, int From, int To);
 
     public Day5(ILogger logger, string path) : base(logger, path) { }
 
@@ -19,26 +19,29 @@ public class Day5 : Puzzle
         for (int i = 1; i <= 9; i++)
             _data[i] = new();
 
+        var pattern = new Regex(@"\d+");
         bool onFirstPart = true;
+
         foreach (var line in ReadFromFile())
         {
-            if (string.IsNullOrEmpty(line))
-            {
-                onFirstPart = false;
-                continue;
-            }
             if (onFirstPart)
             {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    onFirstPart = false;
+                    continue;
+                }
+
                 // Important indices: 1, 5, 9, 13, 17, 21, 25, 29, 33
                 for (int i = 1; i < line.Length; i += 4)
                     if (line[i] != ' ')
                         _data[((i - 1) / 4) + 1].Push(line[i]);
-                // Side note: we've also added the numbers 1-9 to the stack
+                // Side note: this also adds the numbers 1-9 to the stack
             }
             else
             {
-                var digits = Regex.Replace(line, "[a-z]", string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).ConvertToInts();
-                _instructions.Add(new Instruction(digits[0], digits[1], digits[2]));
+                var digits = pattern.Matches(line).Select(m => int.Parse(m.ValueSpan)).ToArray();
+                _instructions.Add(new Move(digits[0], digits[1], digits[2]));
             }
         }
     }
@@ -46,36 +49,34 @@ public class Day5 : Puzzle
     public override void SolvePart1()
     {
         var copiedData = CopyData(_data);
-        foreach (var move in _instructions)
-            MoveFromTo(copiedData, move.Amount, move.From, move.To);
+        _instructions.ForEach(move => MoveFromTo(copiedData, move));
         _logger.Log(TopCrates(copiedData));
     }
 
     public override void SolvePart2()
     {
         var copiedData = CopyData(_data);
-        foreach (var move in _instructions)
-            MoveFromToMaintainOrder(copiedData, move.Amount, move.From, move.To);
+        _instructions.ForEach(move => MoveFromToMaintainOrder(copiedData, move));
         _logger.Log(TopCrates(copiedData));
     }
 
-    private static void MoveFromTo(Dictionary<int, Stack<char>> source, int amount, int from, int to)
+    private static void MoveFromTo(Dictionary<int, Stack<char>> source, Move move)
     {
-        for (int i = 0; i < amount; i++)
-            source[to].Push(source[from].Pop());
+        for (int i = 0; i < move.Amount; i++)
+            source[move.To].Push(source[move.From].Pop());
     }
 
-    private static void MoveFromToMaintainOrder(Dictionary<int, Stack<char>> source, int amount, int from, int to)
+    private static void MoveFromToMaintainOrder(Dictionary<int, Stack<char>> source, Move move)
     {
         var temp = new Stack<char>();
-        for (int i = 0; i < amount; i++)
-            temp.Push(source[from].Pop());
+        for (int i = 0; i < move.Amount; i++)
+            temp.Push(source[move.From].Pop());
         while (temp.Count != 0)
-            source[to].Push(temp.Pop());
+            source[move.To].Push(temp.Pop());
     }
 
     // We make a copy of it so that we're not affecting the original and can run both Parts and also do performance tests
-    private static Dictionary<int, Stack<char>> CopyData(Dictionary<int, Stack<char>> source)
+    private static Dictionary<int, Stack<char>> CopyData(IDictionary<int, Stack<char>> source)
     {
         Dictionary<int, Stack<char>> copy = new(9);
         foreach (var kvp in source)
@@ -83,7 +84,7 @@ public class Day5 : Puzzle
         return copy;
     }
 
-    private static string TopCrates(Dictionary<int, Stack<char>> source)
+    private static string TopCrates(IDictionary<int, Stack<char>> source)
     {
         var result = new StringBuilder();
         foreach (var kvp in source)
