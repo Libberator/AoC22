@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -255,29 +254,4 @@ public static class Utils
     // TODO: Make a class for recursion, containing dictionary and methods that takes an index, Func and/or Predicate as args.
 
     #endregion
-}
-
-/// <summary>For referencing a value type as a reference type. Useful if you want to edit a value inside of a Stack/Queue.</summary>
-public class Wrapper<T> where T : struct
-{
-    public T Value { get; set; }
-}
-
-/// <summary>For quick benchmarking. Can be used like: using (new <see cref="Watch"/>($"Day{i} runtime")) { ... }"</summary>
-public sealed class Watch : IDisposable
-{
-    private readonly string _text;
-    private readonly Stopwatch _watch;
-
-    public Watch(string text)
-    {
-        _text = text;
-        _watch = Stopwatch.StartNew();
-    }
-
-    public void Dispose()
-    {
-        _watch.Stop();
-        Console.WriteLine($"{_text}: {_watch.ElapsedMilliseconds}ms");
-    }
 }
