@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 
 namespace AoC22;
 
@@ -111,7 +112,7 @@ public static class Utils
 
     #endregion
 
-    #region String Conversions
+    #region String Helpers
 
     public static int[] ConvertToInts(this string[] data) => Array.ConvertAll(data, int.Parse);
     public static int BinaryToInt(this string s) => Convert.ToInt32(s, 2);
@@ -138,6 +139,9 @@ public static class Utils
         'F' or 'f' => "1111",
         _ => throw new NotImplementedException(),
     };
+
+    /// <summary>Returns a concatenated string with the <paramref name="source"/> repeated <paramref name="n"/> times.</summary>
+    public static string Repeat(this string source, int n) => new StringBuilder(n * source.Length).Insert(0, source, n).ToString();
 
     #endregion
 

@@ -68,12 +68,12 @@ public partial class Day7 : Puzzle
 
         void Recurse(Folder dir, ref int depth)
         {
-            _logger.Log($"{(string.Concat(Enumerable.Repeat(" ", depth)))}- {dir.Name} (dir)");
+            _logger.Log($"{" ".Repeat(depth)}- {dir.Name} (dir)");
             depth++;
             foreach (var subFolder in dir.SubFolders)
                 Recurse(subFolder, ref depth);
             foreach (var file in dir.Files)
-                _logger.Log($"{(string.Concat(Enumerable.Repeat(" ", depth)))}- {file.Name} (file, size={file.Size})");
+                _logger.Log($"{" ".Repeat(depth)}- {file.Name} (file, size={file.Size})");
             depth--;
         }
     }
