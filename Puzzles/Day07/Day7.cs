@@ -8,58 +8,74 @@ namespace AoC22;
 public partial class Day7 : Puzzle
 {
     private readonly List<Folder> _allFolders = new();
-    private readonly Folder _rootDirectory = new("/");
+    private readonly Folder _root = new("/");
 
     public Day7(ILogger logger, string path) : base(logger, path) { }
 
+    private const string LIST_FILES = "$ ls";
     private const string UP_ONE_FOLDER = "..";
-    //private const string LIST_FILES = "$ ls"; // we just skip these
 
     public override void Setup()
     {
-        Folder currentFolder = _rootDirectory;
-
+        Folder cwd = _root; // current working directory
         foreach (var line in ReadFromFile().Skip(1))
         {
-            var folderMatch = FolderPattern().Match(line);
-            if (folderMatch.Success)
+            if (line == LIST_FILES) continue;
+
+            var cdMatch = ChangeDirectoryPattern().Match(line);
+            if (cdMatch.Success)
             {
-                var folderName = folderMatch.Groups[1].ValueSpan;
-                var newFolder = new Folder(folderName, currentFolder);
-                currentFolder.AddFolder(newFolder);
-                _allFolders.Add(newFolder);
+                var nextFolder = cdMatch.Groups[1].Value;
+                if (nextFolder == UP_ONE_FOLDER) cwd = cwd.Parent!;
+                else cwd = cwd.SubFolders.First(f => f.Name == nextFolder);
                 continue;
             }
 
             var fileMatch = FilePattern().Match(line);
             if (fileMatch.Success)
             {
-                var newFile = new DataFile(int.Parse(fileMatch.Groups[1].ValueSpan), fileMatch.Groups[2].Value);
-                currentFolder.AddFile(newFile);
+                cwd.AddFile(new(int.Parse(fileMatch.Groups[1].ValueSpan), fileMatch.Groups[2].Value));
                 continue;
             }
 
-            var cdMatch = ChangeDirectoryPattern().Match(line);
-            if (cdMatch.Success)
+            var folderMatch = FolderPattern().Match(line);
+            if (folderMatch.Success)
             {
-                var nextFolder = cdMatch.Groups[1].Value;
-                if (nextFolder == UP_ONE_FOLDER) currentFolder = currentFolder.Parent!;
-                else currentFolder = currentFolder.SubFolders.Single(f => f.Name == nextFolder);
+                var folderName = folderMatch.Groups[1].ValueSpan;
+                var newFolder = new Folder(folderName, cwd);
+                cwd.AddFolder(newFolder);
+                _allFolders.Add(newFolder);
             }
         }
     }
 
-    public override void SolvePart1()
-    {
-        long total = _allFolders.Where(f => f.Size <= 100_000).Sum(f => f.Size);
-        _logger.Log(total);
-    }
+    public override void SolvePart1() => _logger.Log(_allFolders.Where(f => f.Size <= 100_000).Sum(f => f.Size));
 
     public override void SolvePart2()
     {
-        var amountOver = _rootDirectory.Size - 40_000_000;
+        var amountOver = _root.Size - 40_000_000;
         var amountToDelete = _allFolders.Where(f => f.Size >= amountOver).Min(f => f.Size);
         _logger.Log(amountToDelete);
+    }
+
+    // Bonus: prints out the filesystem visually
+    public void PrettyPrint()
+    {
+        int depth = 0;
+        _logger.Log("");
+        Recurse(_root, ref depth);
+        _logger.Log("");
+
+        void Recurse(Folder dir, ref int depth)
+        {
+            _logger.Log($"{(string.Concat(Enumerable.Repeat(" ", depth)))}- {dir.Name} (dir)");
+            depth++;
+            foreach (var subFolder in dir.SubFolders)
+                Recurse(subFolder, ref depth);
+            foreach (var file in dir.Files)
+                _logger.Log($"{(string.Concat(Enumerable.Repeat(" ", depth)))}- {file.Name} (file, size={file.Size})");
+            depth--;
+        }
     }
 
     [GeneratedRegex("\\$ cd ([/.\\w]+)")]
@@ -76,23 +92,20 @@ public class Folder
 {
     public readonly string Name;
     public Folder? Parent;
-    
     public readonly HashSet<Folder> SubFolders = new();
     public readonly HashSet<DataFile> Files = new();
 
-    private bool _hasCalculatedSize = false;
-    private long _totalFileSize;
-    private long _folderSize;
-    public long Size
+    private bool _isDirty = true;
+    private int _totalFileSize;
+    private int _folderSize;
+    public int Size
     {
         get
         {
-            if (!_hasCalculatedSize)
+            if (_isDirty)
             {
-                foreach (var subFolder in SubFolders)
-                    _folderSize += subFolder.Size;
-                _folderSize += _totalFileSize;
-                _hasCalculatedSize = true;
+                _folderSize = _totalFileSize + SubFolders.Sum(f => f.Size);
+                _isDirty = false;
             }
             return _folderSize;
         }
@@ -108,7 +121,6 @@ public class Folder
 
     public void AddFile(DataFile newFile)
     {
-        if (Files.Add(newFile))
-            _totalFileSize += newFile.Size;
+        if (Files.Add(newFile)) _totalFileSize += newFile.Size;
     }
 }
