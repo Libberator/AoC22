@@ -34,19 +34,20 @@ public partial class Day7 : Puzzle
             var fileMatch = FilePattern().Match(line);
             if (fileMatch.Success)
             {
-                cwd.AddFile(new(int.Parse(fileMatch.Groups[1].ValueSpan), fileMatch.Groups[2].Value));
+                cwd.AddFile(new(fileMatch.Groups[2].Value, int.Parse(fileMatch.Groups[1].ValueSpan)));
                 continue;
             }
 
             var folderMatch = FolderPattern().Match(line);
             if (folderMatch.Success)
             {
-                var folderName = folderMatch.Groups[1].ValueSpan;
+                var folderName = folderMatch.Groups[1].Value;
                 var newFolder = new Folder(folderName, cwd);
-                cwd.AddFolder(newFolder);
+                cwd.AddSubFolder(newFolder);
                 _allFolders.Add(newFolder);
             }
         }
+        //PrettyPrint();
     }
 
     public override void SolvePart1() => _logger.Log(_allFolders.Where(f => f.Size <= 100_000).Sum(f => f.Size));
@@ -78,29 +79,34 @@ public partial class Day7 : Puzzle
         }
     }
 
-    [GeneratedRegex("\\$ cd ([/.\\w]+)")]
-    private static partial Regex ChangeDirectoryPattern();
-    [GeneratedRegex("(\\d+) ([a-z.]+)")]
-    private static partial Regex FilePattern();
-    [GeneratedRegex("dir (\\w+)")]
-    private static partial Regex FolderPattern();
-}
+    public record File(string Name, int Size);
 
-public record DataFile(int Size, string Name);
-
-public class Folder
-{
-    public readonly string Name;
-    public Folder? Parent;
-    public readonly HashSet<Folder> SubFolders = new();
-    public readonly HashSet<DataFile> Files = new();
-
-    private bool _isDirty = true;
-    private int _totalFileSize;
-    private int _folderSize;
-    public int Size
+    public class Folder
     {
-        get
+        public readonly string Name;
+        public Folder? Parent;
+        public readonly HashSet<Folder> SubFolders = new();
+        public readonly HashSet<File> Files = new();
+        public int Size => GetSize();
+
+        private int _totalFileSize;
+        private int _folderSize;
+        private bool _isDirty = true;
+
+        public Folder(string name, Folder? parent = null)
+        {
+            Name = name.ToString();
+            Parent = parent;
+        }
+
+        public void AddSubFolder(Folder newFolder) => SubFolders.Add(newFolder);
+
+        public void AddFile(File newFile)
+        {
+            if (Files.Add(newFile)) _totalFileSize += newFile.Size;
+        }
+
+        private int GetSize()
         {
             if (_isDirty)
             {
@@ -111,16 +117,10 @@ public class Folder
         }
     }
 
-    public Folder(ReadOnlySpan<char> name, Folder? parent = null)
-    {
-        Name = name.ToString();
-        Parent = parent;
-    }
-
-    public void AddFolder(Folder newFolder) => SubFolders.Add(newFolder);
-
-    public void AddFile(DataFile newFile)
-    {
-        if (Files.Add(newFile)) _totalFileSize += newFile.Size;
-    }
+    [GeneratedRegex("\\$ cd (.+)")]
+    private static partial Regex ChangeDirectoryPattern();
+    [GeneratedRegex("(\\d+) (.+)")]
+    private static partial Regex FilePattern();
+    [GeneratedRegex("dir (.+)")]
+    private static partial Regex FolderPattern();
 }
