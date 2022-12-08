@@ -100,6 +100,8 @@ public struct Bounds
     public bool IsInHorizontalBounds(int x) => XMin <= x && x <= XMax;
     /// <summary>Returns true if <paramref name="y"/> is on or inside the Bounds.</summary>
     public bool IsInVerticalBounds(int y) => YMin <= y && y <= YMax;
+    /// <summary>Returns a value to indicate the position is directly on the edge of the Bounds.</summary>
+    public bool IsOnEdge(Vector2Int pos) => Contains(pos) && (pos.X == XMin || pos.X == XMax || pos.Y == XMin || pos.Y == YMax);
     /// <summary>Returns a value to indicate if another bounding box intersects or shares an edge with this bounding box.</summary>
     public bool Overlaps(Bounds other) => XMin <= other.XMax && other.XMin <= XMax && YMin <= other.YMax && other.YMin <= YMax;
     /// <summary>Sets the bounds to the min and max value of the box.</summary>
