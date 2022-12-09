@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
-using System.Text.RegularExpressions;
 
 namespace AoC22;
 
@@ -14,10 +13,7 @@ public partial class Day9 : Puzzle
     public override void Setup()
     {
         foreach (var line in ReadFromFile())
-        {
-            var match = MovePattern().Match(line);
-            _moves.Add(new(AsDirection(match.Groups[1].Value), int.Parse(match.Groups[2].Value)));
-        }
+            _moves.Add(new(AsDirection(line[0]), int.Parse(line[2..])));
     }
 
     public override void SolvePart1()
@@ -52,15 +48,12 @@ public partial class Day9 : Puzzle
         }
     }
 
-    private static Vector2Int AsDirection(string dir) => dir switch
+    private static Vector2Int AsDirection(char dir) => dir switch
     {
-        "U" => Vector2Int.Up,
-        "R" => Vector2Int.Right,
-        "D" => Vector2Int.Down,
-        "L" => Vector2Int.Left,
+        'U' => Vector2Int.Up,
+        'R' => Vector2Int.Right,
+        'D' => Vector2Int.Down,
+        'L' => Vector2Int.Left,
         _ => Vector2Int.Zero
     };
-
-    [GeneratedRegex(@"(\w) (\d+)")]
-    private static partial Regex MovePattern();
 }
