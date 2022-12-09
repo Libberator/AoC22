@@ -151,7 +151,9 @@ public static class Vector2IntExtensions
     /// <summary>Returns a vector whose elements are the absolute values of each of the specified vector's elements.</summary>
     public static Vector2Int Abs(this Vector2Int value) => new(Math.Abs(value.X), Math.Abs(value.Y));
     /// <summary>Restricts a vector between a minimum and a maximum value.</summary>
-    public static Vector2Int Clamp(this Vector2Int value, Vector2Int min, Vector2Int max) => new(Math.Clamp(value.X, min.X, max.X), Math.Clamp(value.Y, min.Y, max.Y));
+    public static Vector2Int Clamp(this Vector2Int value, Vector2Int min, Vector2Int max) => value.Clamp(min.X, max.X, min.Y, max.Y);
+    /// <summary>Restricts a vector between a minimum and a maximum value.</summary>
+    public static Vector2Int Clamp(this Vector2Int value, int minX, int maxX, int minY, int maxY) => new(Math.Clamp(value.X, minX, maxX), Math.Clamp(value.Y, minY, maxY));
     /// <summary>Computes the Euclidian distance between the two given points.</summary>
     public static double Distance(this Vector2Int a, Vector2Int b) => Math.Sqrt(DistanceSquared(a, b));
     /// <summary>Computes the Chebyshev distance, also known as chessboard distance - the amount of moves a king would take to get from a to b.</summary>
