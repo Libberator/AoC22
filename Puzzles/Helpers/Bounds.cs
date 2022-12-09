@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace AoC22;
@@ -96,12 +97,21 @@ public struct Bounds
         YMin -= yAmount;
         YMax += yAmount;
     }
+    /// <summary>Generate all coordinates from Min to Max. e.g. (XMin, YMin), (XMin, YMin + 1), ..., (XMax, YMax - 1), (XMax, YMax).</summary>
+    public IEnumerable<Vector2Int> GetAllCoordinates()
+    {
+        for (int x = XMin; x <= XMax; x++)
+            for (int y = YMin; y <= YMax; y++)
+                yield return new(x, y);
+    }
     /// <summary>Returns true if <paramref name="x"/> is on or inside the Bounds.</summary>
     public bool IsInHorizontalBounds(int x) => XMin <= x && x <= XMax;
     /// <summary>Returns true if <paramref name="y"/> is on or inside the Bounds.</summary>
     public bool IsInVerticalBounds(int y) => YMin <= y && y <= YMax;
     /// <summary>Returns a value to indicate the position is directly on the edge of the Bounds.</summary>
-    public bool IsOnEdge(Vector2Int pos) => Contains(pos) && (pos.X == XMin || pos.X == XMax || pos.Y == XMin || pos.Y == YMax);
+    public bool IsOnEdge(Vector2Int pos) => IsOnEdge(pos.X, pos.Y); 
+    /// <summary>Returns a value to indicate the position is directly on the edge of the Bounds.</summary>
+    public bool IsOnEdge(int x, int y) => Contains(x, y) && (x == XMin || x == XMax || y == XMin || y == YMax);
     /// <summary>Returns a value to indicate if another bounding box intersects or shares an edge with this bounding box.</summary>
     public bool Overlaps(Bounds other) => XMin <= other.XMax && other.XMin <= XMax && YMin <= other.YMax && other.YMin <= YMax;
     /// <summary>Sets the bounds to the min and max value of the box.</summary>
@@ -112,7 +122,4 @@ public struct Bounds
         YMin = min.Y;
         YMax = max.Y;
     }
-
-    //public bool HasOvershot(Vector2Int pos) => pos.X > XMax || pos.Y > YMax;
-    //public bool HasUndershot(Vector2Int pos) => pos.X < XMin || pos.Y < YMin;
 }

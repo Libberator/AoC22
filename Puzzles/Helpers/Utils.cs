@@ -110,6 +110,20 @@ public static class Utils
     public static T MinBy<T>(this IEnumerable<T> source, Func<T, IComparable> score) =>
         source.Aggregate((x, y) => score(x).CompareTo(score(y)) < 0 ? x : y);
 
+    /// <summary>
+    /// This will throw an exception if you don't have the right amount in the jagged array
+    /// </summary>
+    /// <exception cref="IndexOutOfRangeException"/>
+    public static T[][] GetColumnData<T>(this T[][] values, int startColumn, int numberOfColumns)
+    {
+        return Enumerable.Range(startColumn, numberOfColumns)
+            .Select(i => values.Select(x => x[i]).ToArray())
+            .ToArray();
+    }
+
+    // just for 1 column into a single array
+    public static T[] GetColumnData<T>(this T[][] values, int column) => values.Select(x => x[column]).ToArray();
+
     #endregion
 
     #region String Helpers

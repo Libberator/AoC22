@@ -47,18 +47,19 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     #region Static Properties
 
     /// <summary>Gets the vector (1,0).</summary>
-    public static Vector2Int Right => new(1, 0);
+    public static readonly Vector2Int Right = new(1, 0);
     /// <summary>Gets the vector (0,1).</summary>
-    public static Vector2Int Up => new(0, 1);
+    public static readonly Vector2Int Up = new(0, 1);
     /// <summary>Gets the vector (-1,0).</summary>
-    public static Vector2Int Left => new(-1, 0);
+    public static readonly Vector2Int Left = new(-1, 0);
     /// <summary>Gets the vector (0,-1).</summary>
-    public static Vector2Int Down => new(0, -1);
+    public static readonly Vector2Int Down = new(0, -1);
     ///<summary>A vector whose two elements are equal to one (that is, it returns the vector (1, 1)</summary>
-    public static Vector2Int One => new(1, 1);
+    public static readonly Vector2Int One = new(1, 1);
     ///<summary>A vector whose two elements are equal to zero (that is, it returns the vector (0, 0)</summary>
-    public static Vector2Int Zero => new(0, 0);
-    // Consider: N,E,S,W, SouthEast, SouthWest, NorthWest, and replace One with NorthEast
+    public static readonly Vector2Int Zero = new(0, 0);
+    /// <summary>Returns the four cardinal directions N, E, S, W in that order.</summary>
+    public static readonly Vector2Int[] CompassDirections = new Vector2Int[4] { Up, Right, Down, Left };
 
     #endregion
 
@@ -86,11 +87,11 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     /// format string to format individual elements and the specified format provider
     /// to define culture-specific formatting.
     /// </summary>
-    public string ToString([StringSyntax("NumericFormat")] string? format, IFormatProvider? formatProvider) => $"{X.ToString(format, formatProvider)},{Y.ToString(format, formatProvider)}";
+    public string ToString([StringSyntax("NumericFormat")] string? format, IFormatProvider? formatProvider) => $"{X.ToString(format, formatProvider)}, {Y.ToString(format, formatProvider)}";
     /// <summary>Returns the string representation of the current instance using default formatting: "X,Y".</summary>
-    public readonly override string ToString() => $"{X},{Y}";
+    public readonly override string ToString() => $"{X}, {Y}";
     /// <summary>Returns the string representation of the current instance using the specified format string to format individual elements.</summary>
-    public readonly string ToString([StringSyntax("NumericFormat")] string? format) => $"{X.ToString(format)},{Y.ToString(format)}";
+    public readonly string ToString([StringSyntax("NumericFormat")] string? format) => $"{X.ToString(format)}, {Y.ToString(format)}";
 
     #endregion
 
