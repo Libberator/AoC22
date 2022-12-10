@@ -1,6 +1,6 @@
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
 
 namespace AoC22.Tests;
 
@@ -17,46 +17,32 @@ public class Tests
     {
         // Arrange
         puzzle.Setup();
-        
-        if (expected.Length == 0)
-            Assert.Fail("results.txt has no values in it to compare against.");
-        
-        else if (expected.Length == 1)
+        var expectedResult1 = expected.Length switch
         {
-            // Arrange
-            var expectedResult1 = expected[0];
-            
-            // Act
-            puzzle.SolvePart1();
-            var part1Result = _logger.LastMessage;
-            
-            // Assert
-            Assert.That(part1Result, Is.EqualTo(expectedResult1), "Part 1 (no Part 2 provided)");
-            Assert.Inconclusive("Part 1 Passed. Part 2 expected result not yet provided."); // optional, depending how you like to see test results
-        }
-        
-        else if (expected.Length == 2 || expected.Length == 3 && string.IsNullOrWhiteSpace(expected[2]))
+            0 => "Part 1 results not provided.",
+            > 1 => expected[0], // TODO: consider a more flexible approach for part1 multi-line results (see expectedResult2)
+            _ => throw new Exception("Expected Results 1: This error should not occur."),
+        };
+        var expectedResult2 = expected.Length switch
         {
-            // Arrange
-            var expectedResult1 = expected[0];
-            var expectedResult2 = expected[1];
-            
-            // Act
-            puzzle.SolvePart1();
-            var part1Result = _logger.LastMessage;
-            puzzle.SolvePart2();
-            var part2Result = _logger.LastMessage;
-            
-            // Assert
-            Assert.Multiple(() =>
-            {
-                Assert.That(part1Result, Is.EqualTo(expectedResult1), "Part 1");
-                Assert.That(part2Result, Is.EqualTo(expectedResult2), "Part 2");
-            });
-        }
+            0 or 1 => "Part 2 results not provided.",
+            2 => expected[1],
+            > 2 => string.Join(Environment.NewLine, expected[2..]).Trim(), // put a blank line between answer 1 and 2 for multiline
+            _ => throw new Exception("Expected Results 2: This error should not occur."),
+        };
 
-        else
-            Assert.Fail($"Expected 1-2 lines in results.txt, found {expected.Length}. Did not know how to parse.");
+        // Act
+        puzzle.SolvePart1();
+        var part1Result = _logger.LastMessage;
+        puzzle.SolvePart2();
+        var part2Result = _logger.LastMessage?.Trim();
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(part1Result, Is.EqualTo(expectedResult1), "Part 1");
+            Assert.That(part2Result, Is.EqualTo(expectedResult2), "Part 2");
+        });
     }
 
     private static IEnumerable<TestCaseData> TestCaseGenerator()
@@ -77,7 +63,7 @@ public class Tests
             {
                 continue;
             }
-            yield return new TestCaseData(puzzle, expected).SetName($"Day {i}");
+            yield return new TestCaseData(puzzle, expected).SetName($"Day {i:D2}");
         }
     }
 }
