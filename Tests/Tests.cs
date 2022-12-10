@@ -19,13 +19,13 @@ public class Tests
         puzzle.Setup();
         var expectedResult1 = expected.Length switch
         {
-            0 => "Part 1 results not provided.",
+            0 => "Part 1 expected results not provided.",
             > 1 => expected[0], // TODO: consider a more flexible approach for part1 multi-line results (see expectedResult2)
             _ => throw new Exception("Expected Results 1: This error should not occur."),
         };
         var expectedResult2 = expected.Length switch
         {
-            0 or 1 => "Part 2 results not provided.",
+            0 or 1 => "Part 2 expected results not provided.",
             2 => expected[1],
             > 2 => string.Join(Environment.NewLine, expected[2..]).Trim(), // put a blank line between answer 1 and 2 for multiline
             _ => throw new Exception("Expected Results 2: This error should not occur."),
