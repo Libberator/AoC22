@@ -38,11 +38,11 @@ public partial class Day9 : Puzzle
     {
         for (int n = 0; n < move.Amount; n++)
         {
-            knots[0] += move.Direction;
+            knots[0].Add(move.Direction);
             for (int i = 1; i < knots.Length; i++)
             {
-                if (knots[i].DistanceChebyshev(knots[i - 1]) <= 1) break;
-                knots[i] += (knots[i - 1] - knots[i]).Clamp(-1, 1, -1, 1);
+                if (knots[i].DistanceChebyshevTo(knots[i - 1]) <= 1) break;
+                knots[i].Add(Vector2Int.Clamp(knots[i - 1] - knots[i], -1, 1, -1, 1));
                 if (i == knots.Length - 1) trail.Add(knots[i]);
             }
         }

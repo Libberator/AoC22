@@ -74,9 +74,9 @@ public struct Bounds
     /// <summary>Returns a value to indicate if a point is within the bounding box.</summary>
     public bool Contains(int x, int y) => IsInHorizontalBounds(x) && IsInVerticalBounds(y);
     /// <summary>Returns a value that is the distance from the closest point on the Bounds' border.</summary>
-    public int DistanceFromBorder(Vector2Int pos) => pos.DistanceManhattan(ClosestPointOnBorder(pos));
+    public int DistanceFromBorder(Vector2Int pos) => pos.DistanceManhattanTo(ClosestPointOnBorder(pos));
     /// <summary>Returns a value that is the distance from the closest point on the Bounds' border.</summary>
-    public int DistanceFromBorder(int x, int y) => new Vector2Int(x, y).DistanceManhattan(ClosestPointOnBorder(x, y));
+    public int DistanceFromBorder(int x, int y) => new Vector2Int(x, y).DistanceManhattanTo(ClosestPointOnBorder(x, y));
     /// <summary>Grows the Bounds to include the point.</summary>
     public void Encapsulate(Vector2Int point) => Encapsulate(point.X, point.Y);
     /// <summary>Grows the Bounds to include the point.</summary>

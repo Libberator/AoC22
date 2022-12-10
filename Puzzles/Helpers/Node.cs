@@ -33,7 +33,7 @@ public class Node
     public void SetH(int val) => H = val;
     public void SetConnection(Node node) => Connection = node;
     // alternatives: Pos.DistanceSquared(target.Pos); or Pos.DistanceManhattan(target.Pos); or Pos.DistanceChebyshev(target.Pos);
-    public virtual int GetDistance(Node target) => (int)Math.Round(10 * Pos.Distance(target.Pos));
+    public virtual int GetDistance(Node target) => (int)Math.Round(10 * Pos.DistanceEuclidianTo(target.Pos));
     protected virtual bool IsANeighbor(Node other) => Pos.IsAdjacentTo(other.Pos); // optional to add: || Pos.IsDiagonalTo(other.Pos);
     public void FindAndAddNeighbors(IEnumerable<Node> grid) => AddNeighbors(grid.Where(IsANeighbor));
     public void AddNeighbors(IEnumerable<Node> allNeighbors) => Neighbors.AddRange(allNeighbors);
