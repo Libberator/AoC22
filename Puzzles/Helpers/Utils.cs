@@ -110,9 +110,7 @@ public static class Utils
     public static T MinBy<T>(this IEnumerable<T> source, Func<T, IComparable> score) =>
         source.Aggregate((x, y) => score(x).CompareTo(score(y)) < 0 ? x : y);
 
-    /// <summary>
-    /// This will throw an exception if you don't have the right amount in the jagged array
-    /// </summary>
+    /// <summary>For getting vertical data in 2D arrays. This will throw an exception if you don't have the right amount in the jagged array.</summary>
     /// <exception cref="IndexOutOfRangeException"/>
     public static T[][] GetColumnData<T>(this T[][] values, int startColumn, int numberOfColumns)
     {
@@ -121,7 +119,7 @@ public static class Utils
             .ToArray();
     }
 
-    // just for 1 column into a single array
+    /// <summary>This will return 1 column of data from a 2D jagged array into a single array.</summary>
     public static T[] GetColumnData<T>(this T[][] values, int column) => values.Select(x => x[column]).ToArray();
 
     #endregion
