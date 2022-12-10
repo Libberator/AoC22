@@ -27,7 +27,7 @@ public class Tests
         {
             0 or 1 => "Part 2 expected results not provided.",
             2 => expected[1],
-            > 2 => string.Join(Environment.NewLine, expected[2..]).Trim(), // put a blank line between answer 1 and 2 for multiline
+            > 2 => string.Join(Environment.NewLine, expected[1..]).Trim(), // multi-line answers
             _ => throw new Exception("Expected Results 2: This error should not occur."),
         };
 
