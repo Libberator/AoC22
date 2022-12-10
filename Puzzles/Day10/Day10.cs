@@ -18,7 +18,7 @@ public partial class Day10 : Puzzle
             IncrementCycle();
             if (line == NO_OP) continue;
             IncrementCycle();
-            _registerX += int.Parse(line.Split(' ')[1]);
+            _registerX += int.Parse(line[5..]);
         }
     }
 
