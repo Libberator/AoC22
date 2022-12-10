@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Intrinsics;
 
 namespace System.Numerics;
 
@@ -9,8 +8,8 @@ namespace System.Numerics;
 /// </summary>
 public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
 {
-    public int X { get; set; }
-    public int Y { get; set; }
+    public int X;
+    public int Y;
 
     /// <summary>Creates a new Vector2Int object whose two elements have the same value</summary>
     public Vector2Int(int value)
@@ -64,7 +63,7 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
 
     #endregion
 
-    #region Non-Static Functions
+    #region Non-Static Methods
 
     /// <summary>Make both parts of this vector non-negative.</summary>
     public void Abs() { X = Math.Abs(X); Y = Math.Abs(Y); }
@@ -127,27 +126,6 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
 
     #endregion
 
-    #region Interface and Overrides
-
-    /// <summary>Returns a value that indicates whether this instance and another vector are equal.</summary>
-    public readonly bool Equals(Vector2Int other) => this == other;
-    /// <summary>Returns a value that indicates whether this instance and another vector are equal.</summary>
-    public override bool Equals([NotNullWhen(true)] object? obj) => obj is Vector2Int other && Equals(other);
-    /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => ToString().GetHashCode();
-    /// <summary>
-    /// Returns the string representation of the current instance using the specified
-    /// format string to format individual elements and the specified format provider
-    /// to define culture-specific formatting.
-    /// </summary>
-    public string ToString([StringSyntax("NumericFormat")] string? format, IFormatProvider? formatProvider) => $"{X.ToString(format, formatProvider)}, {Y.ToString(format, formatProvider)}";
-    /// <summary>Returns the string representation of the current instance using default formatting: "X,Y".</summary>
-    public readonly override string ToString() => $"{X}, {Y}";
-    /// <summary>Returns the string representation of the current instance using the specified format string to format individual elements.</summary>
-    public readonly string ToString([StringSyntax("NumericFormat")] string? format) => $"{X.ToString(format)}, {Y.ToString(format)}";
-
-    #endregion
-
     #region Static Methods
 
     /// <summary>Returns a vector whose elements are the absolute values of each of the specified vector's elements.</summary>
@@ -189,6 +167,27 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     public static Vector2Int Max(Vector2Int a, Vector2Int b) => new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
     /// <summary>Returns a vector whose elements are the minimum of each of the pairs of elements in two specified vectors.</summary>
     public static Vector2Int Min(Vector2Int a, Vector2Int b) => new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
+
+    #endregion
+
+    #region Interface and Override Methods
+
+    /// <summary>Returns a value that indicates whether this instance and another vector are equal.</summary>
+    public readonly bool Equals(Vector2Int other) => this == other;
+    /// <summary>Returns a value that indicates whether this instance and another vector are equal.</summary>
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is Vector2Int other && Equals(other);
+    /// <summary>Returns the hash code for this instance.</summary>
+    public override int GetHashCode() => ToString().GetHashCode();
+    /// <summary>
+    /// Returns the string representation of the current instance using the specified
+    /// format string to format individual elements and the specified format provider
+    /// to define culture-specific formatting.
+    /// </summary>
+    public string ToString([StringSyntax("NumericFormat")] string? format, IFormatProvider? formatProvider) => $"{X.ToString(format, formatProvider)}, {Y.ToString(format, formatProvider)}";
+    /// <summary>Returns the string representation of the current instance using default formatting: "X,Y".</summary>
+    public readonly override string ToString() => $"{X}, {Y}";
+    /// <summary>Returns the string representation of the current instance using the specified format string to format individual elements.</summary>
+    public readonly string ToString([StringSyntax("NumericFormat")] string? format) => $"{X.ToString(format)}, {Y.ToString(format)}";
 
     #endregion
 
