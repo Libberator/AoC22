@@ -79,8 +79,8 @@ public partial class Day11 : Puzzle
         var itemHolders = new List<byte>(_itemStartingHolders);
         
         var inspectionTotals = new long[_monkeys.Count];
-        var greatedCommonDivisor = _monkeys.Select(m => m.DivisibleByValue).Product();
-        Func<long, long> postInspection = worry => worry % greatedCommonDivisor;
+        var greatestCommonDivisor = _monkeys.Select(m => m.DivisibleByValue).Product();
+        Func<long, long> postInspection = worry => worry % greatestCommonDivisor;
 
         RunRounds(10_000, items, itemHolders, inspectionTotals, postInspection);
 
@@ -105,9 +105,12 @@ public partial class Day11 : Puzzle
     {
         public readonly byte Id;
         public Func<long, long> Operation;
-        public byte DivisibleByValue, TrueTarget, FalseTarget;
+        public int DivisibleByValue;
+        public byte TrueTarget, FalseTarget;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Monkey(byte id) => Id = id;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     }
 
     [GeneratedRegex(@"\d+")]
