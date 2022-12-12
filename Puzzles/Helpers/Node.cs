@@ -6,18 +6,16 @@ using System.Numerics;
 namespace AoC22;
 
 /// <summary>Generic class used for a point in a grid. Used for A* pathfinding.</summary>
-public class Node<T>
+public class Node
 {
-    /// <summary>This can be anything to store extra information.</summary>
-    public T Value { get; set; }
     /// <summary>Coordinate of this Node</summary>
     public Vector2Int Pos { get; private set; }
     /// <summary>Cost to go to this node</summary>
     public int BaseCost { get; private set; }
     /// <summary>Used for backtracking when pathfinding. Should be one of its neighbors.</summary>
-    public Node<T> Connection { get; private set; }
+    public Node Connection { get; private set; }
     /// <summary>List of connecting nodes. Populate this before trying to pathfind.</summary>
-    public List<Node<T>> Neighbors { get; }  = new();
+    public List<Node> Neighbors { get; } = new();
     /// <summary>Cost from Start (all previous Costs + this BaseCost)</summary>
     public int G { get; private set; }
     /// <summary>Distance to target node. Aids in traveling more directly</summary>
@@ -25,36 +23,30 @@ public class Node<T>
     /// <summary>Total Heuristic for traveling to this node</summary>
     public int F => G + H;
 
-    public Node(int x, int y, T value = default, int cost = 1) : this(new(x, y), value, cost) { }
-    public Node(Vector2Int pos, T value = default, int cost = 1)
+    public Node(int x, int y, int cost = 1) : this(new(x, y), cost) { }
+    public Node(Vector2Int pos, int cost = 1)
     {
-        Value = value;
         Pos = pos;
         BaseCost = cost;
     }
 
     public void SetG(int val) => G = val;
     public void SetH(int val) => H = val;
-    public void SetConnection(Node<T> node) => Connection = node;
+    public void SetConnection(Node node) => Connection = node;
     // alternatives: Pos.DistanceSquaredTo(target.Pos); or Pos.DistanceManhattanTo(target.Pos); or  Pos.DistanceChebyshevTo(target.Pos);
     /// <summary>May have mixed results depending on many factors. Consider overriding this with Manhattan or Chebyshev Distance.</summary>
-    public virtual int GetDistance(Node<T> target) => (int)Math.Round(10 * Pos.DistanceEuclidianTo(target.Pos));
-    protected virtual bool IsValidNeighbor(Node<T> other) => Pos.IsAdjacentTo(other.Pos); // optional to add: || Pos.IsDiagonalTo(other.Pos);
-    public virtual void FindAndAddNeighbors<TGrid>(Grid<TGrid> grid) where TGrid : Node<T>
-    {
-        foreach (var dir in Vector2Int.CompassDirections)
-            if (grid.TryGetPointAt(Pos + dir, out var neighbor) && IsValidNeighbor(neighbor)) AddNeighbor(neighbor);
-    }
-    public virtual void FindAndAddNeighbors<TGrid>(IDictionary<Vector2Int, TGrid> grid) where TGrid : Node<T>
+    public virtual int GetDistance<T>(T target) where T : Node => (int)Math.Round(10 * Pos.DistanceEuclidianTo(target.Pos));
+    protected virtual bool IsValidNeighbor<T>(T other) where T : Node => Pos.IsAdjacentTo(other.Pos); // optional to add: || Pos.IsDiagonalTo(other.Pos);
+    public virtual void FindAndAddNeighbors<T>(IDictionary<Vector2Int, T> grid) where T : Node
     {
         foreach (var dir in Vector2Int.CompassDirections)
             if (grid.TryGetValue(Pos + dir, out var neighbor) && IsValidNeighbor(neighbor)) AddNeighbor(neighbor);
     }
-    public virtual void FindAndAddNeighbors<TGrid>(IEnumerable<TGrid> grid) where TGrid : Node<T> => AddNeighbors(grid.Where(IsValidNeighbor));
-    public void AddNeighbors(IEnumerable<Node<T>> neighbors) => Neighbors.AddRange(neighbors);
-    public void AddNeighbor(Node<T> neighbor) => Neighbors.Add(neighbor);
-    public void RemoveNeighbors(IEnumerable<Node<T>> neighbors) => Neighbors.RemoveAll(n => neighbors.Contains(n));
-    public void RemoveNeighbor(Node<T> neighbor) => Neighbors.Remove(neighbor);
+    public virtual void FindAndAddNeighbors<T>(IEnumerable<T> grid) where T : Node => AddNeighbors(grid.Where(IsValidNeighbor));
+    public void AddNeighbors(IEnumerable<Node> neighbors) => Neighbors.AddRange(neighbors);
+    public void AddNeighbor(Node neighbor) => Neighbors.Add(neighbor);
+    public void RemoveNeighbors(IEnumerable<Node> neighbors) => Neighbors.RemoveAll(n => neighbors.Contains(n));
+    public void RemoveNeighbor(Node neighbor) => Neighbors.Remove(neighbor);
 }
 
 public static class Pathfinding
@@ -63,10 +55,10 @@ public static class Pathfinding
     /// A* Pathfinding. Returns a list of nodes in reverse order from the target destination (included) to the starting point (excluded).
     /// Before calling this, ensure the Nodes' Neighbors have already been populated.
     /// </summary>
-    public static List<Node<T>> FindPath<T>(Node<T> start, Node<T> end)
+    public static List<T> FindPath<T>(T start, T end) where T : Node
     {
-        var toSearch = new List<Node<T>>() { start };
-        var processed = new List<Node<T>>();
+        var toSearch = new List<T>() { start };
+        var processed = new List<T>();
 
         while (toSearch.Any())
         {
@@ -96,25 +88,25 @@ public static class Pathfinding
                     if (!inSearch)
                     {
                         neighbor.SetH(neighbor.GetDistance(end));
-                        toSearch.Add(neighbor);
+                        toSearch.Add(neighbor as T);
                     }
                 }
             }
         }
-        return new List<Node<T>>();
+        return new List<T>();
     }
 
     /// <summary>Returns a value that indicates it's a cheaper cost to travel to next instead of the current leading node.</summary>
-    private static bool IsBetterCandidateThan<T>(this Node<T> next, Node<T> current) => next.F < current.F || (next.F == current.F && next.H < current.H);
+    private static bool IsBetterCandidateThan<T>(this T next, T current) where T : Node => next.F < current.F || (next.F == current.F && next.H < current.H);
 
-    private static List<Node<T>> BacktrackRoute<T>(Node<T> target, Node<T> start)
+    private static List<T> BacktrackRoute<T>(T target, T start) where T : Node
     {
-        var path = new List<Node<T>>();
-        Node<T> currentNode = target;
+        var path = new List<T>();
+        var currentNode = target;
         while (currentNode != start)
         {
             path.Add(currentNode);
-            currentNode = currentNode.Connection;
+            currentNode = currentNode.Connection as T;
         }
         return path;
     }

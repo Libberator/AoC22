@@ -50,7 +50,8 @@ public class Day12 : Puzzle
     public override void SolvePart2()
     {
         int minTravel = int.MaxValue;
-        foreach (var lowPoint in _points.Values.Where(p => p.Value == 'a' && p.Neighbors.Any(n => n.Value > p.Value)))
+        var lowPoints = _points.Values.Where(a => a.Value == 'a');
+        foreach (var lowPoint in lowPoints.Where(a => a.Neighbors.Any(n => n is Point b && b.Value > a.Value)))
         {
             var path = Pathfinding.FindPath(lowPoint, _endPoint);
             if (path.Count < minTravel && path.Count != 0)
@@ -59,10 +60,11 @@ public class Day12 : Puzzle
         _logger.Log(minTravel);
     }
 
-    private class Point : Node<char>
+    private class Point : Node
     {
-        public Point(Vector2Int pos, char value = default) : base(pos, value) { }
-        protected override bool IsValidNeighbor(Node<char> other) => other.Value - Value <= 1; // Adjacency check handled in FindAndAddNeighbors base method
-        public override int GetDistance(Node<char> target) => Pos.DistanceChebyshevTo(target.Pos);
+        public char Value { get; set; }
+        public Point(Vector2Int pos, char value, int cost = 1) : base(pos, cost) { Value = value; }
+        protected override bool IsValidNeighbor<T>(T other) => other is Point p && p.Value - Value <= 1; // Adjacency check handled in FindAndAddNeighbors base method
+        public override int GetDistance<Point>(Point target) => Pos.DistanceChebyshevTo(target.Pos);
     }
 }
