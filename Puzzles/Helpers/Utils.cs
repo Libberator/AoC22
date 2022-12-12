@@ -127,6 +127,9 @@ public static class Utils
     #region String Helpers
 
     public static int[] ConvertToInts(this string[] data) => Array.ConvertAll(data, int.Parse);
+    public static long[] ConvertToLongs(this string[] data) => Array.ConvertAll(data, long.Parse);
+    public static ulong[] ConvertToULongs(this string[] data) => Array.ConvertAll(data, ulong.Parse);
+    public static BigInteger[] ConvertToBigInts(this string[] data) => Array.ConvertAll(data, BigInteger.Parse);
     public static int BinaryToInt(this string s) => Convert.ToInt32(s, 2);
     public static long BinaryToLong(this string s) => Convert.ToInt64(s, 2);
     public static int HexToInt(this string s) => Convert.ToInt32(s, 16);
@@ -158,6 +161,14 @@ public static class Utils
     #endregion
 
     #region Math Helpers
+
+    /// <summary>Similar to Sum(), except each element in the <paramref name="source"/> is multiplied by each other.</summary>
+    public static T Product<T>(this IEnumerable<T> source) where T : INumber<T>
+    {
+        T result = T.MultiplicativeIdentity;
+        foreach (var value in source) result *= value;
+        return result;
+    }
 
     /// <summary>
     /// Returns a sorted list of all the factors of <paramref name="n"/>. 

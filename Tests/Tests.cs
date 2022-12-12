@@ -20,7 +20,7 @@ public class Tests
         var expectedResult1 = expected.Length switch
         {
             0 => "Part 1 expected results not provided.",
-            > 1 => expected[0], // TODO: consider a more flexible approach for part1 multi-line results (see expectedResult2)
+            > 0 => expected[0], // TODO: consider a more flexible approach for part1 multi-line results (see expectedResult2)
             _ => throw new Exception("Expected Results 1: This error should not occur."),
         };
         var expectedResult2 = expected.Length switch
