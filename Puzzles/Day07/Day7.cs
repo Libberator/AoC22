@@ -83,7 +83,7 @@ public partial class Day7 : Puzzle
     public class Folder
     {
         public readonly string Name;
-        public Folder? Parent;
+        public Folder Parent;
         public readonly HashSet<Folder> SubFolders = new();
         public readonly HashSet<File> Files = new();
         public int Size => GetSize();
@@ -92,7 +92,7 @@ public partial class Day7 : Puzzle
         private int _folderSize;
         private bool _isDirty = true;
 
-        public Folder(string name, Folder? parent = null)
+        public Folder(string name, Folder parent = null)
         {
             Name = name.ToString();
             Parent = parent;

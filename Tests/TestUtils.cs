@@ -12,3 +12,10 @@ public static class TestUtils
         return File.Exists(fullPath);
     }
 }
+
+public class TestLogger : ILogger
+{
+    public string? LastMessage { get; private set; }
+
+    public void Log(string msg) => LastMessage = msg;
+}

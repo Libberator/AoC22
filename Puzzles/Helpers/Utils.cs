@@ -11,7 +11,7 @@ public static class Utils
 {
     #region Reflection
 
-    public static T GetClassOfType<T>(string className, params object?[]? args)
+    public static T GetClassOfType<T>(string className, params object[] args)
     {
         var genericType = typeof(T).Assembly.GetTypes()
             .Where(t => t.IsAssignableTo(typeof(T)))
@@ -44,7 +44,7 @@ public static class Utils
     {
         if (!FileExists(path)) yield break;
 
-        string? line;
+        string line;
         using var reader = File.OpenText(path);
         while ((line = reader.ReadLine()) != null)
         {
@@ -74,8 +74,8 @@ public static class Utils
     /// <summary>
     /// Tries to grab a value from a dictionary if it exists, otherwise returns the provided default value.
     /// </summary>
-    public static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue? defVal) =>
-        dict.TryGetValue(key, out TValue? value) ? value : defVal;
+    public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue defVal) =>
+        dict.TryGetValue(key, out TValue value) ? value : defVal;
 
     /// <summary>Returns the middle-most value, favoring the end for collections of even quantities.</summary>
     public static T Middle<T>(this IList<T> list) => list.ElementAt(list.Count / 2);

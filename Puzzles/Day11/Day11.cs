@@ -17,7 +17,7 @@ public partial class Day11 : Puzzle
     public override void Setup()
     {
         var pattern = NumberPattern();
-        Monkey? monkey = null;
+        Monkey monkey = null;
         foreach (var line in ReadFromFile(ignoreWhiteSpace: true))
         {
             if (line.Contains("Monkey"))
@@ -31,26 +31,26 @@ public partial class Day11 : Puzzle
                 for (int i = 0; i < matches.Count; i++)
                 {
                     _itemStartingValues.Add(int.Parse(matches[i].ValueSpan));
-                    _itemStartingHolders.Add(monkey!.Id);
+                    _itemStartingHolders.Add(monkey.Id);
                 }
             }
             else if (line.Contains("Operation"))
             {
                 var match = pattern.Match(line);
-                if (!match.Success) monkey!.Operation = old => old * old;
+                if (!match.Success) monkey.Operation = old => old * old;
                 else
                 {
                     var value = int.Parse(match.ValueSpan);
-                    if (line.Contains('*')) monkey!.Operation = old => old * value;
-                    else monkey!.Operation = old => old + value; // line.Contains('+')
+                    if (line.Contains('*')) monkey.Operation = old => old * value;
+                    else monkey.Operation = old => old + value; // line.Contains('+')
                 }
             }
             else
             {
                 var value = byte.Parse(pattern.Match(line).ValueSpan);
-                if (line.Contains("Test")) monkey!.DivisibleByValue = value;
-                else if (line.Contains("If true")) monkey!.TrueTarget = value;
-                else if (line.Contains("If false")) monkey!.FalseTarget = value;
+                if (line.Contains("Test")) monkey.DivisibleByValue = value;
+                else if (line.Contains("If true")) monkey.TrueTarget = value;
+                else if (line.Contains("If false")) monkey.FalseTarget = value;
             }
         }
     }

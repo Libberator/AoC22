@@ -1,25 +1,39 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace AoC22;
 
-// Work in Progress
 public class Grid<T>
 {
-    // Not sure if this should be a Dictionary, List, multidimensional array [,], jagged array [][],...
     public readonly Dictionary<Vector2Int, T> Data = new();
 
-    private readonly int _width; // columns. x-value
-    private readonly int _height; // rows. y-value
+    public Bounds Bounds { get; set; }
 
-    public Grid(int width, int height)
+    public bool TryGetPointAt(int x, int y, out T point) => TryGetPointAt(new(x, y), out point);
+    public bool TryGetPointAt(Vector2Int pos, out T point) => Data.TryGetValue(pos, out point);
+
+    public void Add(int x, int y, T value) => Add(new(x, y), value);
+    public void Add(Vector2Int pos, T value)
     {
-        _width = width;
-        _height = height;
+        Data.Add(pos, value);
+        Bounds.Encapsulate(pos);
     }
 
-    public bool IsWithinBounds(Vector2Int pos) => IsWithinBounds(pos.X, pos.Y);
-    public bool IsWithinBounds(int x, int y) => x >= 0 && x < _width && y >= 0 && y < _height;
+    public void ApplyToAll(Action<T> action)
+    {
+        foreach (var kvp in Data)
+            action?.Invoke(kvp.Value);
+    }
+
+    public IEnumerable<T> Where(Predicate<T> predicate)
+    {
+        if (predicate == null) throw new Exception("No valid predicate provided.");
+
+        foreach (var kvp in Data)
+            if (predicate(kvp.Value))
+                yield return kvp.Value;
+    }
 
     /*
         TODO Features:

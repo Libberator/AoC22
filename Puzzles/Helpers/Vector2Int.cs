@@ -175,7 +175,7 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     /// <summary>Returns a value that indicates whether this instance and another vector are equal.</summary>
     public readonly bool Equals(Vector2Int other) => this == other;
     /// <summary>Returns a value that indicates whether this instance and another vector are equal.</summary>
-    public override bool Equals([NotNullWhen(true)] object? obj) => obj is Vector2Int other && Equals(other);
+    public override bool Equals([NotNullWhen(true)] object obj) => obj is Vector2Int other && Equals(other);
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => ToString().GetHashCode();
     /// <summary>
@@ -183,11 +183,11 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     /// format string to format individual elements and the specified format provider
     /// to define culture-specific formatting.
     /// </summary>
-    public string ToString([StringSyntax("NumericFormat")] string? format, IFormatProvider? formatProvider) => $"{X.ToString(format, formatProvider)}, {Y.ToString(format, formatProvider)}";
+    public string ToString([StringSyntax("NumericFormat")] string format, IFormatProvider formatProvider) => $"{X.ToString(format, formatProvider)}, {Y.ToString(format, formatProvider)}";
     /// <summary>Returns the string representation of the current instance using default formatting: "X,Y".</summary>
     public readonly override string ToString() => $"{X}, {Y}";
     /// <summary>Returns the string representation of the current instance using the specified format string to format individual elements.</summary>
-    public readonly string ToString([StringSyntax("NumericFormat")] string? format) => $"{X.ToString(format)}, {Y.ToString(format)}";
+    public readonly string ToString([StringSyntax("NumericFormat")] string format) => $"{X.ToString(format)}, {Y.ToString(format)}";
 
     #endregion
 
