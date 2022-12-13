@@ -177,7 +177,7 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     /// <summary>Returns a value that indicates whether this instance and another vector are equal.</summary>
     public override bool Equals([NotNullWhen(true)] object obj) => obj is Vector2Int other && Equals(other);
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => ToString().GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(X, Y);
     /// <summary>
     /// Returns the string representation of the current instance using the specified
     /// format string to format individual elements and the specified format provider

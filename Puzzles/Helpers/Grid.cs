@@ -1,38 +1,54 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 
 namespace AoC22;
 
-public class Grid<T>
+public class Grid<T> : IEnumerable<T>
 {
-    public readonly Dictionary<Vector2Int, T> Data = new();
+    public readonly T[,] Data;
+    public readonly Bounds Bounds;
 
-    public Bounds Bounds { get; set; }
-
-    public bool TryGetPointAt(int x, int y, out T point) => TryGetPointAt(new(x, y), out point);
-    public bool TryGetPointAt(Vector2Int pos, out T point) => Data.TryGetValue(pos, out point);
-
-    public void Add(int x, int y, T value) => Add(new(x, y), value);
-    public void Add(Vector2Int pos, T value)
+    public Grid(int rows, int cols)
     {
-        Data.Add(pos, value);
-        Bounds.Encapsulate(pos);
+        Data = new T[rows, cols];
+        Bounds = new Bounds(0, rows - 1, 0, cols - 1);
     }
 
-    public void ApplyToAll(Action<T> action)
+    public bool TryGetValue(int x, int y, out T point)
     {
-        foreach (var kvp in Data)
-            action?.Invoke(kvp.Value);
+        point = default;
+        if (!Bounds.Contains(x, y)) return false;
+        point = Data[x, y];
+        return true;
     }
 
-    public IEnumerable<T> Where(Predicate<T> predicate)
-    {
-        if (predicate == null) throw new Exception("No valid predicate provided.");
+    public bool TryGetValue(Vector2Int pos, out T point) => TryGetValue(pos.X, pos.Y, out point);
 
-        foreach (var kvp in Data)
-            if (predicate(kvp.Value))
-                yield return kvp.Value;
+    public void Add(int x, int y, T value) => Data[x, y] = value;
+    public void Add(Vector2Int pos, T value) => Add(pos.X, pos.Y, value);
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        foreach (var pos in Bounds.GetAllCoordinates())
+            yield return Data[pos.X, pos.Y];
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        yield return GetEnumerator();
+    }
+
+    public T this[int row, int col]
+    {
+        get => Data[row, col];
+        set => Data[row, col] = value;
+    }
+
+    public T this[Vector2Int pos]
+    {
+        get => this[pos.X, pos.Y];
+        set=> this[pos.X, pos.Y] = value;
     }
 
     /*

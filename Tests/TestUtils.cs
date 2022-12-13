@@ -11,6 +11,12 @@ public static class TestUtils
         fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, folder, file);
         return File.Exists(fullPath);
     }
+
+    public static string FullPathTests(int number, string file = "input.txt")
+    {
+        var folder = $"Day{number:D2}Test";
+        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, folder, file);
+    }
 }
 
 public class TestLogger : ILogger
