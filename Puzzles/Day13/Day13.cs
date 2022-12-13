@@ -6,7 +6,6 @@ namespace AoC22;
 
 public partial class Day13 : Puzzle
 {
-    private readonly List<(Packet Left, Packet Right)> _packetPairs = new();
     private readonly List<Packet> _allPackets = new();
     public Day13(ILogger logger, string path) : base(logger, path) { }
 
@@ -20,56 +19,22 @@ public partial class Day13 : Puzzle
         public Packet(Packet parent = null) => Parent = parent;
         public Packet(int number, Packet parent = null) : this(parent) => Number = number;
 
-        public int CompareTo(Packet other)
-        {
-            var result = IsInTheRightOrder(this, other);
-            if (!result.HasValue) return 0;
-            return result.Value ? -1 : 1;
-        }
+        public int CompareTo(Packet other) => ComparePackets(this, other);
     }
 
     public override void Setup()
     {
-        Packet left = null;
-        Packet right = null;
-
-        bool isLeftPacket = true;
-        foreach (var line in ReadFromFile())
-        {
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                _packetPairs.Add((left, right));
-                _allPackets.Add(left);
-                _allPackets.Add(right);
-                left = null;
-                right = null;
-                isLeftPacket = true;
-                continue;
-            }
-            if (isLeftPacket)
-            {
-                left = ParseLine(line);
-                isLeftPacket = false;
-            }
-            else
-                right = ParseLine(line);
-        }
-        // capture the final pair in case we don't end on a newline
-        if (left != null && right != null)
-        {
-            _packetPairs.Add((left, right));
-            _allPackets.Add(left);
-            _allPackets.Add(right);
-        }
+        foreach (var line in ReadFromFile(ignoreWhiteSpace: true))
+            _allPackets.Add(ParseLine(line));
     }
 
     public override void SolvePart1()
     {
         int score = 0;
         int pairIndex = 1;
-        foreach (var (Left, Right) in _packetPairs)
+        for (int i = 0; i < _allPackets.Count; i += 2)
         {
-            if (Left.CompareTo(Right) < 0) score += pairIndex;
+            if (_allPackets[i].CompareTo(_allPackets[i + 1]) == -1) score += pairIndex;
             pairIndex++;
         }
         _logger.Log(score);
@@ -82,7 +47,7 @@ public partial class Day13 : Puzzle
         _allPackets.Add(divider1);
         _allPackets.Add(divider2);
 
-        _allPackets.Sort((left, right) => left.CompareTo(right));
+        _allPackets.Sort();
 
         var index1 = _allPackets.IndexOf(divider1) + 1;
         var index2 = _allPackets.IndexOf(divider2) + 1;
@@ -92,13 +57,11 @@ public partial class Day13 : Puzzle
     private static Packet ParseLine(string line)
     {
         Packet currentPacket = null;
-        var pattern = NumberPattern();
-        var split = pattern.Split(line); // has all the brackets and commas
-        var matches = pattern.Matches(line); // has all the numbers
+        var split = NumberPattern().Split(line); // has all the brackets and commas
+        var matches = NumberPattern().Matches(line); // has all the numbers
         int matchIndex = 0;
         foreach (var symbols in split)
         {
-            if (string.IsNullOrWhiteSpace(symbols)) continue;
             foreach (var symbol in symbols)
             {
                 if (symbol == ',') continue;
@@ -112,40 +75,39 @@ public partial class Day13 : Puzzle
                     currentPacket = currentPacket.Parent ?? currentPacket;
             }
             if (matchIndex < matches.Count)
-                currentPacket.Subpackets.Add(new(int.Parse(matches[matchIndex++].ValueSpan), currentPacket));
+                currentPacket.Subpackets.Add(new Packet(int.Parse(matches[matchIndex++].ValueSpan), currentPacket));
         }
         return currentPacket;
     }
 
-    // Recursive. True, False, or Null (if it's a tie)
-    private static bool? IsInTheRightOrder(Packet left, Packet right)
+    // Recursive. -1 = left is correctly to the left of right. +1 = they're swapped. 0 = tied.
+    private static int ComparePackets(Packet left, Packet right)
     {
-        // Comparing numbers. Both have a number assigned
+        // Both have a number assigned
         if (left.Number.HasValue && right.Number.HasValue)
         {
-            if (left.Number.Value == right.Number.Value) return null;
-            return left.Number.Value < right.Number.Value;
+            if (left.Number.Value == right.Number.Value) return 0;
+            return left.Number.Value < right.Number.Value ? -1 : 1;
         }
-        // Mixed types (number vs list) - push the value down into another packet layer and try again
-        else if (left.Number.HasValue ^ right.Number.HasValue)
+
+        // Mixed types (number vs list) - push the value down into another packet layer
+        if (left.Number.HasValue ^ right.Number.HasValue)
         {
             var packet = left.Number.HasValue ? left : right;
             var newValueWrapper = new Packet(packet.Number.Value, packet);
             packet.Number = null;
             packet.Subpackets.Add(newValueWrapper);
-
-            return IsInTheRightOrder(left, right);
         }
 
+        // Both have a list of more packets.
         int maxToCompare = Math.Min(left.Subpackets.Count, right.Subpackets.Count);
         for (int i = 0; i < maxToCompare; i++)
         {
-            var result = IsInTheRightOrder(left.Subpackets[i], right.Subpackets[i]);
-            if (result.HasValue) return result.Value;
+            var result = ComparePackets(left.Subpackets[i], right.Subpackets[i]);
+            if (result != 0) return result;
         }
-
-        if (left.Subpackets.Count == right.Subpackets.Count) return null;
-        return left.Subpackets.Count < right.Subpackets.Count;
+        if (left.Subpackets.Count == right.Subpackets.Count) return 0;
+        return left.Subpackets.Count < right.Subpackets.Count ? -1 : 1;
     }
 
     [GeneratedRegex(@"\d+")]
