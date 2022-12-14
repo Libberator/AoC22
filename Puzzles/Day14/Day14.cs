@@ -63,38 +63,23 @@ public class Day14 : Puzzle
 
     private bool TryGetNextPosition(Stack<Vector2Int> startingPoints, out Vector2Int settlePos)
     {
-        var pos = startingPoints.Peek();
-        if (_sands.Contains(pos))
-        {
-            startingPoints.Pop();
-            pos = startingPoints.Peek();
-        }
+        var pos = startingPoints.Pop();
 
         while (true)
         {
             settlePos = pos; // capture last known safe position to settle
             pos.Y += 1; // move down 1 step
             if (pos.Y >= _maxDepth) return false; // endless void (a.k.a. hit the floor)
-            if (!IsBlocked(pos))
-            {
-                startingPoints.Push(pos); // can move down
-                continue;
-            }
+            startingPoints.Push(settlePos); // cache a safe starting point
+            if (!IsBlocked(pos)) continue; // can move down
             pos.X -= 1; // can't move down, try down-left position
-            if (!IsBlocked(pos))
-            {
-                startingPoints.Push(pos); // can move left
-                continue;
-            }
+            if (!IsBlocked(pos)) continue; // can move left
             pos.X += 2; // can't move left, try down-right position
-            if (!IsBlocked(pos))
-            {
-                startingPoints.Push(pos); // can move right
-                continue;
-            }
+            if (!IsBlocked(pos)) continue; // can move right
+            startingPoints.Pop(); // remove last cached starting point as it will get filled
             return true; // can't move down/left/right, the sand settles
         }
-        
+
         bool IsBlocked(Vector2Int pos) => _sands.Contains(pos) || _walls.Contains(pos);
     }
 
