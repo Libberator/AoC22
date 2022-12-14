@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AoC22;
 
-public static class Utils
+public static partial class Utils
 {
     #region Reflection
 
@@ -281,4 +282,12 @@ public static class Utils
     // TODO: Make a class for recursion, containing dictionary and methods that takes an index, Func and/or Predicate as args.
 
     #endregion
+
+    #region Regex Patterns
+
+    [GeneratedRegex(@"(\d+)")]
+    public static partial Regex NumberPattern();
+
+    #endregion
+
 }

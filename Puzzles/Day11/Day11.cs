@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace AoC22;
 
@@ -16,7 +15,7 @@ public partial class Day11 : Puzzle
 
     public override void Setup()
     {
-        var pattern = NumberPattern();
+        var pattern = Utils.NumberPattern();
         Monkey monkey = null;
         foreach (var line in ReadFromFile(ignoreWhiteSpace: true))
         {
@@ -100,11 +99,6 @@ public partial class Day11 : Puzzle
         public int DivisibleByValue;
         public byte TrueTarget, FalseTarget;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Monkey(byte id) => Id = id;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     }
-
-    [GeneratedRegex(@"\d+")]
-    private static partial Regex NumberPattern();
 }

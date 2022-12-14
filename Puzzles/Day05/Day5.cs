@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace AoC22;
 
@@ -19,7 +18,7 @@ public class Day5 : Puzzle
         for (int i = 1; i <= 9; i++)
             _data[i] = new();
 
-        var pattern = new Regex(@"\d+");
+        var pattern = Utils.NumberPattern();
         bool onFirstPart = true;
 
         foreach (var line in ReadFromFile())

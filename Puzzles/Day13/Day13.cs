@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace AoC22;
 
-public partial class Day13 : Puzzle
+public class Day13 : Puzzle
 {
     private readonly List<Packet> _allPackets = new();
     public Day13(ILogger logger, string path) : base(logger, path) { }
@@ -57,8 +56,8 @@ public partial class Day13 : Puzzle
     private static Packet ParseLine(string line)
     {
         Packet currentPacket = null;
-        var split = NumberPattern().Split(line); // has all the brackets and commas
-        var matches = NumberPattern().Matches(line); // has all the numbers
+        var split = Utils.NumberPattern().Split(line); // has all the brackets and commas
+        var matches = Utils.NumberPattern().Matches(line); // has all the numbers
         int matchIndex = 0;
         foreach (var symbols in split)
         {
@@ -109,7 +108,4 @@ public partial class Day13 : Puzzle
         if (left.Subpackets.Count == right.Subpackets.Count) return 0;
         return left.Subpackets.Count < right.Subpackets.Count ? -1 : 1;
     }
-
-    [GeneratedRegex(@"\d+")]
-    private static partial Regex NumberPattern();
 }
