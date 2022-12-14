@@ -10,7 +10,6 @@ public class Day14 : Puzzle
 {
     private readonly HashSet<Vector2Int> _walls = new();
     private readonly HashSet<Vector2Int> _sands = new();
-
     private readonly Vector2Int _startingPos = new(500, 0);
     private int _maxDepth;
 
@@ -41,8 +40,6 @@ public class Day14 : Puzzle
     {
         while (TryGetNextPosition(_startingPos, out var settledPos))
             _sands.Add(settledPos);
-        DrawResult();
-
         _logger.Log(_sands.Count);
     }
 
@@ -54,7 +51,6 @@ public class Day14 : Puzzle
             _ = TryGetNextPosition(_startingPos, out settledPos);
             _sands.Add(settledPos);
         }
-
         _logger.Log(_sands.Count);
     }
 
@@ -63,47 +59,38 @@ public class Day14 : Puzzle
         while (true)
         {
             settlePos = pos; // capture last known safe position to settle
-            pos.Y += 1; // down 1 step
-
-            // falling into the endless void (a.k.a. hit the floor)
-            if (pos.Y == _maxDepth) return false;
-
-            // if can't move down. try moving left
-            if (_walls.Contains(pos) || _sands.Contains(pos))
+            pos.Y += 1; // move down 1 step
+            if (pos.Y >= _maxDepth) return false; // endless void (a.k.a. hit the floor)
+            if (IsBlocked(pos)) // can't move down, try moving left
             {
-                pos.X -= 1; // down-left position
-
-                // if can't move left. try moving right
-                if (_walls.Contains(pos) || _sands.Contains(pos))
+                pos.X -= 1; // to down-left position
+                if (IsBlocked(pos)) // can't move left, try moving right
                 {
-                    pos.X += 2; // down-right position
-
-                    // if can't move down, down-left, or down-right, the sand settles
-                    if (_walls.Contains(pos) || _sands.Contains(pos)) return true;
+                    pos.X += 2; // to down-right position
+                    if (IsBlocked(pos)) return true; // can't move, the sand settles
                 }
             }
         }
     }
 
-    private void DrawResult()
+    private bool IsBlocked(Vector2Int pos) => _walls.Contains(pos) || _sands.Contains(pos);
+
+    private void DrawResults()
     {
+        var sb = new StringBuilder();
         var xMin = _sands.Min(s => s.X);
         var xMax = _sands.Max(s => s.X);
-        //_logger.Log($"xmin: {xMin}, xmax: {xMax}, ymin: 0, ymax: {_maxDepth}");
-        var sb = new StringBuilder();
-
-        for (int y = 0; y < _maxDepth; y++) // +1?
+        for (int y = 0; y < _maxDepth; y++)
         {
             for (int x = xMin; x <= xMax; x++)
             {
                 var pos = new Vector2Int(x, y);
-                if (_walls.Contains(pos)) sb.Append('▒');
+                if (_walls.Contains(pos)) sb.Append('#');
                 else if (_sands.Contains(pos)) sb.Append('o');
                 else sb.Append('.');
             }
             sb.AppendLine();
         }
-
         _logger.Log(sb.ToString());
     }
 }
