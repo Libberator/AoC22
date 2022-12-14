@@ -17,22 +17,27 @@ public class Day14 : Puzzle
 
     public override void Setup()
     {
-        var pattern = Utils.NumberPattern();
         foreach (var line in ReadFromFile())
         {
-            var matches = pattern.Matches(line);
-            var posA = new Vector2Int(int.Parse(matches[0].ValueSpan), int.Parse(matches[1].ValueSpan));
-            for (int i = 2; i < matches.Count; i += 2)
+            string[] pairs = line.Split("->", StringSplitOptions.TrimEntries);
+            var posA = ParseToVector(pairs[0]);
+            _maxDepth = Math.Max(_maxDepth, posA.Y);
+            for (int i = 1; i < pairs.Length; i++)
             {
-                var posB = new Vector2Int(int.Parse(matches[i].ValueSpan), int.Parse(matches[i + 1].ValueSpan));
-                foreach (var pos in Vector2Int.GetChebyshevPathTo(posA, posB))
-                {
+                var posB = ParseToVector(pairs[i]);
+                _maxDepth = Math.Max(_maxDepth, posB.Y);
+                foreach (var pos in Vector2Int.GetChebyshevPath(posA, posB))
                     _walls.Add(pos);
-                    _maxDepth = Math.Max(_maxDepth, pos.Y);
-                }
                 posA = posB;
             }
         }
+
+        static Vector2Int ParseToVector(string pair)
+        {
+            var numbers = pair.Split(',');
+            return new Vector2Int(int.Parse(numbers[0]), int.Parse(numbers[1]));
+        }
+
         _maxDepth += 2;
     }
 
@@ -61,19 +66,16 @@ public class Day14 : Puzzle
             settlePos = pos; // capture last known safe position to settle
             pos.Y += 1; // move down 1 step
             if (pos.Y >= _maxDepth) return false; // endless void (a.k.a. hit the floor)
-            if (IsBlocked(pos)) // can't move down, try moving left
-            {
-                pos.X -= 1; // to down-left position
-                if (IsBlocked(pos)) // can't move left, try moving right
-                {
-                    pos.X += 2; // to down-right position
-                    if (IsBlocked(pos)) return true; // can't move, the sand settles
-                }
-            }
+            if (!IsBlocked(pos)) continue; // can move down, keep falling
+            pos.X -= 1; // can't move down, try down-left position
+            if (!IsBlocked(pos)) continue; // can move left, keep falling
+            pos.X += 2; // can't move left, try down-right position
+            if (!IsBlocked(pos)) continue; // can move right, keep falling
+            return true; // can't move down/left/right, the sand settles
         }
     }
 
-    private bool IsBlocked(Vector2Int pos) => _walls.Contains(pos) || _sands.Contains(pos);
+    private bool IsBlocked(Vector2Int pos) => _sands.Contains(pos) || _walls.Contains(pos);
 
     private void DrawResults()
     {
@@ -85,8 +87,9 @@ public class Day14 : Puzzle
             for (int x = xMin; x <= xMax; x++)
             {
                 var pos = new Vector2Int(x, y);
-                if (_walls.Contains(pos)) sb.Append('#');
+                if (x == 500 && y == 0) sb.Append('+');
                 else if (_sands.Contains(pos)) sb.Append('o');
+                else if (_walls.Contains(pos)) sb.Append('#');
                 else sb.Append('.');
             }
             sb.AppendLine();

@@ -144,14 +144,25 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     public static int DistanceSquared(Vector2Int a, Vector2Int b) => (b.X - a.X) * (b.X - a.X) + (b.Y - a.Y) * (b.Y - a.Y);
     /// <summary>Returns the dot product of two vectors.</summary>
     public static int Dot(Vector2Int a, Vector2Int b) => a.X * b.X + a.Y * b.Y;
-    /// <summary>Assuming no obstacles or difference in cost between the points, this returns a predictable king-walk path with diagonals first.</summary>
-    public static IEnumerable<Vector2Int> GetChebyshevPathTo(Vector2Int from, Vector2Int to)
+    /// <summary>Returns all points in a rectangle (or line) between the corner points <paramref name="from"/> and <paramref name="to"/>, inclusive.</summary>
+    public static IEnumerable<Vector2Int> GetAllPointsBetween(Vector2Int from, Vector2Int to)
+    {
+        int minX = Math.Min(from.X, to.X);
+        int maxX = Math.Max(from.X, to.X);
+        int minY = Math.Min(from.Y, to.Y);
+        int maxY = Math.Max(from.Y, to.Y);
+        for (int x = minX; x <= maxX; x++)
+            for (int y = minY; y <= maxY; y++)
+                yield return new Vector2Int(x, y);
+    }
+    /// <summary>Returns a direct "king-walk" path with diagonals first.</summary>
+    public static IEnumerable<Vector2Int> GetChebyshevPath(Vector2Int from, Vector2Int to)
     {
         while (from != to)
         {
             yield return from;
-            from.X += from.X < to.X ? 1 : from.X > to.X ? -1 : 0;
-            from.Y += from.Y < to.Y ? 1 : from.Y > to.Y ? -1 : 0;
+            from.X += Math.Sign(to.X - from.X);
+            from.Y += Math.Sign(to.Y - from.Y);
         }
         yield return to;
     }
