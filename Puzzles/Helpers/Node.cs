@@ -15,7 +15,7 @@ public class Node
     /// <summary>Used for backtracking when pathfinding. Should be one of its neighbors.</summary>
     public Node Connection { get; private set; }
     /// <summary>List of connecting nodes. Populate this before trying to pathfind.</summary>
-    public List<Node> Neighbors { get; } = new();
+    public virtual List<Node> Neighbors { get; } = new();
     /// <summary>Cost from Start (all previous Costs + this BaseCost).</summary>
     public int G { get; private set; }
     /// <summary>Distance to target node. Aids in traveling more directly.</summary>
@@ -33,34 +33,41 @@ public class Node
     public void SetG(int val) => G = val;
     /// <summary>Set the H Cost. This is the cost it would take from this Node to the final target if it were a clear path. This aids in selecting the next best Node.</summary>
     public void SetH(int val) => H = val;
-    public void SetConnection<T>(T node) where T : Node => Connection = node;
+    public void SetConnection(Node node) => Connection = node;
     /// <summary>Make sure the scale of this matches lines up with the BaseCost magnitude. e.g. BaseCost of 10 for 10*Euclidian, BaseCost of 1 for Manhattan/Chebyshev, etc.</summary>
-    public virtual int GetDistance<T>(T target) where T : Node => (int)Math.Round(10 * Pos.DistanceEuclidianTo(target.Pos)); // Pos.DistanceChebyshevTo(target.Pos); // Pos.DistanceManhattanTo(target.Pos);
-    public virtual bool IsValidNeighbor<T>(T other) where T : Node => Pos.IsAdjacentTo(other.Pos); // optional to add: || Pos.IsDiagonalTo(other.Pos);
-    public virtual void InitNeighbors<T>(IDictionary<Vector2Int, T> grid, Func<T, bool> isValidNeighbor = null) where T : Node
+    public int GetDistance(Node target) => (int)Math.Round(10 * Pos.DistanceEuclidianTo(target.Pos)); // Pos.DistanceChebyshevTo(target.Pos); // Pos.DistanceManhattanTo(target.Pos);
+    public virtual bool IsValidNeighbor(Node other) => IsValidNeighbor(this, other);
+    public virtual bool IsValidNeighbor(Node self, Node other) => self.Pos.IsAdjacentTo(other.Pos); // optional to add: || Pos.IsDiagonalTo(other.Pos);
+    public virtual void InitNeighbors<T>(IDictionary<Vector2Int, T> grid, Func<T, T, bool> isValidNeighbor = null) where T : Node
     {
         isValidNeighbor ??= IsValidNeighbor;
         Neighbors.Clear();
         foreach (var dir in Vector2Int.CompassDirections)
-            if (grid.TryGetValue(Pos + dir, out var neighbor) && isValidNeighbor(neighbor)) AddNeighbor(neighbor);
+            if (grid.TryGetValue(Pos + dir, out var neighbor) && isValidNeighbor(this as T, neighbor)) AddNeighbor(neighbor);
     }
-    public virtual void InitNeighbors<T>(Grid<T> grid, Func<T, bool> isValidNeighbor = null) where T : Node
+    public virtual void InitNeighbors<T>(Grid<T> grid, Func<T, T, bool> isValidNeighbor = null) where T : Node
     {
         isValidNeighbor ??= IsValidNeighbor;
         Neighbors.Clear();
         foreach (var dir in Vector2Int.CompassDirections)
-            if (grid.TryGetValue(Pos + dir, out var neighbor) && isValidNeighbor(neighbor)) AddNeighbor(neighbor);
+            if (grid.TryGetValue(Pos + dir, out var neighbor) && isValidNeighbor(this as T, neighbor)) AddNeighbor(neighbor);
     }
-    public virtual void InitNeighbors<T>(IEnumerable<T> grid, Func<T, bool> isValidNeighbor = null) where T : Node
+    public virtual void InitNeighbors<T>(IEnumerable<T> grid, Func<T, T, bool> isValidNeighbor = null) where T : Node
     {
         isValidNeighbor ??= IsValidNeighbor;
         Neighbors.Clear();
-        AddNeighbors(grid.Where(isValidNeighbor));
+        AddNeighbors(grid.Where(n => isValidNeighbor(this as T, n)));
     }
     public void AddNeighbors<T>(IEnumerable<T> neighbors) where T : Node => Neighbors.AddRange(neighbors);
     public void AddNeighbor<T>(T neighbor) where T : Node => Neighbors.Add(neighbor);
     public void RemoveNeighbors<T>(IEnumerable<T> neighbors) where T : Node => Neighbors.RemoveAll(n => neighbors.Contains(n));
     public void RemoveNeighbor<T>(T neighbor) where T : Node => Neighbors.Remove(neighbor);
+}
+
+public class Node<T> : Node
+{
+    public T Value { get; set; }
+    public Node(T value, Vector2Int pos, int cost = 10) : base(pos, cost) { Value = value; }
 }
 
 public static class Pathfinding
@@ -71,8 +78,8 @@ public static class Pathfinding
     /// </summary>
     public static List<T> FindPath<T>(T start, T end) where T : Node
     {
-        var toSearch = new List<T>() { start };
-        var processed = new List<T>();
+        var toSearch = new List<Node>() { start };
+        var processed = new List<Node>();
 
         while (toSearch.Count > 0)
         {
@@ -89,9 +96,9 @@ public static class Pathfinding
 
             foreach (var neighbor in current.Neighbors)
             {
-                if (processed.Contains(neighbor as T)) continue;
+                if (processed.Contains(neighbor)) continue;
 
-                var inSearch = toSearch.Contains(neighbor as T);
+                var inSearch = toSearch.Contains(neighbor);
                 var costToNeighbor = current.G + neighbor.BaseCost;
 
                 if (!inSearch || costToNeighbor < neighbor.G)
@@ -102,7 +109,7 @@ public static class Pathfinding
                     if (!inSearch)
                     {
                         neighbor.SetH(neighbor.GetDistance(end));
-                        toSearch.Add(neighbor as T);
+                        toSearch.Add(neighbor);
                     }
                 }
             }

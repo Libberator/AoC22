@@ -285,7 +285,7 @@ public static partial class Utils
 
     #region Regex Patterns
 
-    [GeneratedRegex(@"(\d+)")]
+    [GeneratedRegex(@"(-?\d+)")]
     public static partial Regex NumberPattern();
 
     #endregion

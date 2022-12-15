@@ -1,7 +1,7 @@
 ﻿using AoC22;
 using System;
 
-const int START_DAY = 14;
+const int START_DAY = 15;
 const int STOP_DAY = 25;
 
 var logger = new ConsoleLogger();
@@ -21,7 +21,7 @@ for (int i = START_DAY; i <= STOP_DAY; i++)
     }
 
     puzzle.Setup();
-    
+
     puzzle.SolvePart1();
 
     puzzle.SolvePart2();
