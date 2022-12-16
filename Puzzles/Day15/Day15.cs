@@ -7,7 +7,7 @@ namespace AoC22;
 public class Day15 : Puzzle
 {
     private readonly List<Data> _data = new();
-    private const int ROW = 2_000_000; // for tests, use 10
+    private const int ROW = 10; // 2_000_000; // for tests, use 10
 
     public Day15(ILogger logger, string path) : base(logger, path) { }
 
@@ -84,7 +84,7 @@ public class Day15 : Puzzle
             {
                 var second = _data[j];
                 var distanceApart = first.Sensor.DistanceManhattanTo(second.Sensor);
-                if (distanceApart - 1 != first.Distance + second.Distance + 1) continue;
+                if (distanceApart - (first.Distance + 1) != second.Distance + 1) continue;
 
                 var slope = (first.Sensor.X < second.Sensor.X) ^ (first.Sensor.Y < second.Sensor.Y) ? 1 : -1;
                 var point = first.Sensor.X < second.Sensor.X ?

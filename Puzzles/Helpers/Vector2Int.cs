@@ -155,7 +155,14 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
             for (int y = minY; y <= maxY; y++)
                 yield return new Vector2Int(x, y);
     }
-    /// <summary>Returns a direct "king-walk" path with diagonals first.</summary>
+    /// <summary>Returns all points in a rectangle (or line) between the min and max points, inclusive.</summary>
+    public static IEnumerable<Vector2Int> GetAllPointsBetween(int minX, int maxX, int minY, int maxY)
+    {
+        for (int x = minX; x <= maxX; x++)
+            for (int y = minY; y <= maxY; y++)
+                yield return new Vector2Int(x, y);
+    }
+    /// <summary>Returns a direct "king-walk" path with diagonals first, <paramref name="from"/> and <paramref name="to"/> inclusive.</summary>
     public static IEnumerable<Vector2Int> GetChebyshevPath(Vector2Int from, Vector2Int to)
     {
         while (from != to)
