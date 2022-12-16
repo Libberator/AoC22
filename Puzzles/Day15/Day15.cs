@@ -7,7 +7,8 @@ namespace AoC22;
 public class Day15 : Puzzle
 {
     private readonly List<Data> _data = new();
-    private const int ROW = 10; // 2_000_000; // for tests, use 10
+    //private const int ROW = 2_000_000; // use 2 million for real input data
+    private const int ROW = 10; // use 10 for test data
 
     public Day15(ILogger logger, string path) : base(logger, path) { }
 
@@ -65,14 +66,13 @@ public class Day15 : Puzzle
     public override void SolvePart2()
     {
         var beacon = FindBeacon();
-        //_logger.Log($"Hidden beacon at: {beacon}");
         var tuningFrequency = beacon.X * 4_000_000L + beacon.Y;
         _logger.Log(tuningFrequency);
     }
 
-    // This takes advantage of the fact that the hidden beacon must be on the outer edge of a sensor's range
-    // Specifically there will be 2 pairs of sensors to cover each side of the hidden beacon
-    // We take the two perpendicular lines between the pairs and X marks the spot
+    // This takes advantage of the fact that the hidden beacon must be just outside the edge of the sensor's range
+    // Specifically, there will be 2 pairs of sensors to cover each side of the hidden beacon
+    // Using the lines along the gaps between the pairs (they will be perpendicular), X marks the spot
     private Vector2Int FindBeacon()
     {
         List<(Vector2Int Point, int Slope)> lines = new();
@@ -103,32 +103,20 @@ public class Day15 : Puzzle
                 var (PointB, SlopeB) = lines[j];
                 if (SlopeA == SlopeB) continue;
 
-                var intersect = GetLineIntersect(PointA, SlopeA, PointB, SlopeB);
+                var intersect = Vector2Int.GetLineIntersect(PointA, SlopeA, PointB, SlopeB);
 
                 if (IsValidBeaconPos(intersect)) return intersect;
             }
         }
-
-        // just in case there are more potential lines in the data set that are red herrings
-        bool IsValidBeaconPos(Vector2Int pos)
-        {
-            foreach (var data in _data)
-                if (data.Sensor.DistanceManhattanTo(pos) <= data.Distance) return false;
-            return true;
-        }
-
         return Vector2Int.Zero;
     }
 
-    // Given two lines that each passes through a point with a slope, return their intersection.
-    // This is simplified for integers and a known diagonal slope of 1 or -1
-    private static Vector2Int GetLineIntersect(Vector2Int pt1, int slope1, Vector2Int pt2, int slope2)
+    // just in case there are more potential lines in the data set that are red herrings
+    private bool IsValidBeaconPos(Vector2Int pos)
     {
-        if (slope1 == slope2) throw new Exception("Lines are parallel and don't have a single intersect");
-
-        var x = (pt1.X - slope1 * pt1.Y + pt2.X - slope2 * pt2.Y) / 2;
-        var y = (-slope1 * pt1.X + pt1.Y - slope2 * pt2.X + pt2.Y) / 2;
-        return new Vector2Int(x, y);
+        foreach (var data in _data)
+            if (data.Sensor.DistanceManhattanTo(pos) <= data.Distance) return false;
+        return true;
     }
 
     private class Data

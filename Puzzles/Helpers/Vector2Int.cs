@@ -173,6 +173,19 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
         }
         yield return to;
     }
+    /// <summary>
+    /// Given two lines that each passes through a point with a slope, return their intersection.
+    /// Note: This is a simplified version, only designed to work for diagonal slopes of 1 and -1.
+    /// If their intersection doesn't land exactly on an integer, it will round down.
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    public static Vector2Int GetLineIntersect(Vector2Int pt1, int slope1, Vector2Int pt2, int slope2)
+    {
+        if (slope1 == slope2) throw new Exception("Lines are parallel and don't have a single intersect");
+        var x = (pt1.X - slope1 * pt1.Y + pt2.X - slope2 * pt2.Y) / 2;
+        var y = (-slope1 * pt1.X + pt1.Y - slope2 * pt2.X + pt2.Y) / 2;
+        return new Vector2Int(x, y);
+    }
     /// <summary>Performs a linear interpolation between two vectors based on the given weighting (0f to 1f).</summary>
     public static Vector2Int Lerp(Vector2Int from, Vector2Int to, float weight)
     {
