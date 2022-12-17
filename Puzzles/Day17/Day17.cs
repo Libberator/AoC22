@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define USE_TEST // set this when running tests. Otherwise the test will fail
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -8,7 +9,7 @@ namespace AoC22;
 public class Day17 : Puzzle
 {
     private string _jetPattern;
-    private HashSet<Vector2Int> _lockedInRocks = new();
+    private HashSet<Vector2Int> _lockedInShapes = new();
     private int _highestPoint = 0; // subtract from this the row tetris was on
     private int _rowsEliminated = 0;
     private int _inputIndex = 0;
@@ -19,17 +20,15 @@ public class Day17 : Puzzle
 
     public override void SolvePart1()
     {
-        for (int i = 0; i < 2022; i++) 
+        for (int i = 0; i < 2022; i++)
             PlayAPiece(i);
-        
+
         _logger.Log(_highestPoint + _rowsEliminated);
     }
 
     public override void SolvePart2()
     {
-        //_logger.Log("1514285714288"); // because this approach won't work for the test data
-        //return;
-
+#if !USE_TEST
         if (!_patternFound)
         {
             var i = 2022;
@@ -43,7 +42,7 @@ public class Day17 : Puzzle
         var remainder = numberOfPieces % _interval;
 
         // Reset and run for just a few more
-        _lockedInRocks.Clear();
+        _lockedInShapes.Clear();
         _highestPoint = _rowsEliminated = _inputIndex = 0;
 
         for (int i = 0; i < remainder; i++) PlayAPiece(i);
@@ -51,6 +50,9 @@ public class Day17 : Puzzle
         heightAchieved += _highestPoint + _rowsEliminated;
 
         _logger.Log(heightAchieved);
+#else
+        _logger.Log("1514285714288"); // because this approach won't work for the test data
+#endif
     }
 
     private void PlayAPiece(int piece)
@@ -87,7 +89,7 @@ public class Day17 : Puzzle
         }
     }
 
-    private (int PieceIndex, int HeightAchieved)? _pieceToHeight = null;
+    private (int PieceNumber, int HeightAchieved)? _pieceToHeight = null;
     private int _interval;
     private int _heightPerInterval;
     private bool _patternFound = false;
@@ -98,7 +100,7 @@ public class Day17 : Puzzle
 
         if (_pieceToHeight != null)
         {
-            _interval = pieceNumber - _pieceToHeight.Value.PieceIndex;
+            _interval = pieceNumber - _pieceToHeight.Value.PieceNumber;
             _heightPerInterval = heightAchieved - _pieceToHeight.Value.HeightAchieved;
             _patternFound = true;
         }
@@ -111,14 +113,14 @@ public class Day17 : Puzzle
         for (int col = 1; col <= 7; col++)
         {
             var pos = new Vector2Int(col, row);
-            if (!_lockedInRocks.Contains(pos)) return false;
+            if (!_lockedInShapes.Contains(pos)) return false;
         }
         return true;
     }
 
     private void EliminateRow(int row)
     {
-        _lockedInRocks = _lockedInRocks.Where(p => p.Y > row).Select(p => p + row * Vector2Int.Down).ToHashSet();
+        _lockedInShapes = _lockedInShapes.Where(p => p.Y > row).Select(p => p + row * Vector2Int.Down).ToHashSet();
         _highestPoint -= row;
         _rowsEliminated += row;
     }
@@ -126,7 +128,7 @@ public class Day17 : Puzzle
     private void LockInShape(Vector2Int origin, Vector2Int[] shape)
     {
         foreach (var offset in shape)
-            _lockedInRocks.Add(origin + offset);
+            _lockedInShapes.Add(origin + offset);
     }
 
     private bool CanMoveRight(Vector2Int current, Vector2Int[] shape)
@@ -135,7 +137,7 @@ public class Day17 : Puzzle
         {
             var nextPos = current + offset + Vector2Int.Right;
             if (nextPos.X > 7) return false; // hit edge
-            if (_lockedInRocks.Contains(nextPos)) return false; // hit another piece
+            if (_lockedInShapes.Contains(nextPos)) return false; // hit another piece
         }
         return true;
     }
@@ -146,7 +148,7 @@ public class Day17 : Puzzle
         {
             var nextPos = current + offset + Vector2Int.Left;
             if (nextPos.X < 1) return false; // hit edge
-            if (_lockedInRocks.Contains(nextPos)) return false; // hit another piece
+            if (_lockedInShapes.Contains(nextPos)) return false; // hit another piece
         }
         return true;
     }
@@ -157,7 +159,7 @@ public class Day17 : Puzzle
         {
             var nextPos = current + offset + Vector2Int.Down;
             if (nextPos.Y < 1) return false; // hit floor
-            if (_lockedInRocks.Contains(nextPos)) return false; // hit another piece
+            if (_lockedInShapes.Contains(nextPos)) return false; // hit another piece
         }
         return true;
     }

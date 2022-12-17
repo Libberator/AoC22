@@ -38,7 +38,6 @@ public class Day16 : Puzzle
             foreach (var firstStep in _valves[mapping.Key].NextValves)
                 SearchDeeper(mapping.Key, mapping.Value, firstStep, firstStep);
         }
-        _logger.Log("haha");
     }
 
     private void SearchDeeper(string key, Dictionary<string, (int Dist, string Next)> map, string firstStep, string target, int distance = 0)
@@ -180,6 +179,7 @@ public class Day16 : Puzzle
 
     public override void SolvePart2()
     {
+        SolvePart2Method();
         //_logger.Log(1707);
         //return;
         //DoubleTraverseValve(_startingValve, _startingValve, new List<string>(), 0, 27);
@@ -191,8 +191,21 @@ public class Day16 : Puzzle
 
     private void SolvePart2Method()
     {
+        string target1 = string.Empty;
+        string target2 = string.Empty;
+        
         for (int minutes = 26; minutes >= 0; minutes--)
         {
+
+
+
+            // calculate
+
+            // decide
+
+            // do action
+
+
 
         }
 
