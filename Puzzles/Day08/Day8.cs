@@ -39,7 +39,7 @@ public class Day8 : Puzzle
     private bool IsVisible(Vector2Int pos, int height)
     {
         if (IsEdge(pos)) return true;
-        foreach (var dir in Vector2Int.CompassDirections)
+        foreach (var dir in Vector2Int.AllDirections)
             if (WalkInDirection(pos, dir, height).CanSeeEdge) return true;
         return false;
     }
@@ -48,7 +48,7 @@ public class Day8 : Puzzle
     {
         if (IsEdge(pos)) return 0;
         int score = 1;
-        foreach (var dir in Vector2Int.CompassDirections)
+        foreach (var dir in Vector2Int.AllDirections)
             score *= WalkInDirection(pos, dir, height).ViewingDistance;
         return score;
     }

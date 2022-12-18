@@ -54,12 +54,12 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     public static readonly Vector2Int Left = new(-1, 0);
     /// <summary>Gets the vector (0,-1).</summary>
     public static readonly Vector2Int Down = new(0, -1);
-    ///<summary>A vector whose two elements are equal to one (that is, it returns the vector (1, 1)</summary>
+    ///<summary>A vector whose elements are equal to one (that is, it returns the vector (1, 1)</summary>
     public static readonly Vector2Int One = new(1, 1);
-    ///<summary>A vector whose two elements are equal to zero (that is, it returns the vector (0, 0)</summary>
+    ///<summary>A vector whose elements are equal to zero (that is, it returns the vector (0, 0)</summary>
     public static readonly Vector2Int Zero = new(0, 0);
     /// <summary>Returns the four cardinal directions N, E, S, W in that order.</summary>
-    public static readonly Vector2Int[] CompassDirections = new Vector2Int[4] { Up, Right, Down, Left };
+    public static readonly Vector2Int[] AllDirections = new Vector2Int[4] { Up, Right, Down, Left };
 
     #endregion
 
@@ -92,9 +92,9 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     /// <summary>Divides this vector by <paramref name="divisor"/> using piece-wise integer division.</summary>
     public void DivideBy(Vector2Int divisor) => DivideBy(divisor.X, divisor.Y);
     /// <summary>Returns a value that indicates if this vector and <paramref name="other"/> are next to each other laterally.</summary>
-    public readonly bool IsAdjacentTo(Vector2Int other) => (X == other.X && Math.Abs(Y - other.Y) == 1) || (Y == other.Y && Math.Abs(X - other.X) == 1);
+    public readonly bool IsAdjacentTo(Vector2Int other) => DistanceManhattanTo(other) == 1;
     /// <summary>Returns a value that indicates if this vector and <paramref name="other"/> are next to each other diagonally.</summary>
-    public readonly bool IsDiagonalTo(Vector2Int other) => Math.Abs(X - other.X) == 1 && Math.Abs(Y - other.Y) == 1;
+    public readonly bool IsDiagonalTo(Vector2Int other) => DistanceManhattanTo(other) == 2 && DistanceChebyshevTo(other) == 1;
     /// <summary>Horizontally or Vertically aligned at any distance, but not the same position</summary>
     public readonly bool IsLateralTo(Vector2Int other) => X == other.X ^ Y == other.Y;
     /// <summary>Returns a value that indicates if this vector and <paramref name="other"/> are parralel and neither are Vector2Int.Zero</summary>

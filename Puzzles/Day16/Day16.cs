@@ -9,7 +9,6 @@ public class Day16 : Puzzle
     private readonly Dictionary<string, Valve> _valves = new();
     private readonly Dictionary<string, Dictionary<string, (int Dist, string Next)>> _distanceMap = new();
 
-    private Valve _startingValve;
     private int _valvesWithFlow;
 
     public Day16(ILogger logger, string path) : base(logger, path) { }
@@ -27,14 +26,12 @@ public class Day16 : Puzzle
             _valves[valveId] = valve;
             _distanceMap.Add(valveId, new());
 
-            if (valveId == "AA")
-                _startingValve = valve;
             if (flowRate > 0) _valvesWithFlow++;
         }
 
         foreach (var mapping in _distanceMap)
         {
-            mapping.Value[mapping.Key] = (0, mapping.Key);
+            //mapping.Value[mapping.Key] = (0, mapping.Key);
             foreach (var firstStep in _valves[mapping.Key].NextValves)
                 SearchDeeper(mapping.Key, mapping.Value, firstStep, firstStep);
         }
@@ -50,382 +47,277 @@ public class Day16 : Puzzle
             SearchDeeper(key, map, firstStep, neighbor, distance);
     }
 
+    public override void SolvePart1() => _logger.Log(TakePath(30, "AA", new List<string>()));
 
-    public override void SolvePart1()
+    private int TakePath(int minutes, string current, List<string> opened, int totalPressure = 0)
     {
-        _logger.Log(1651);
-        return; // too slow to actually run
-        //TraverseValve(_startingValve, new List<string>(), 0, 31);
-        //_logger.Log(_pathOfBestPressure);
-        //_logger.Log(_highestTotalPressure); // 2087
-    }
-    
-    private int _highestTotalPressure = 0;
-    private string _pathOfBestPressure;
+        if (opened.Count == _valvesWithFlow) return totalPressure;
 
-    private int _bestAtBeginning = 1400;
-    private int _bestNearMid = 1450;
-    private int _bestNearEnd = 1600;
+        int bestPathScore = 0;
+        var targets = _distanceMap[current].
+                Where(kvp => /*kvp.Key != current &&*/ FlowRateOf(kvp.Key) > 0 && kvp.Value.Dist < minutes && !opened.Contains(kvp.Key)).
+                OrderByDescending(kvp => TargetScore(current, kvp.Key, minutes));
 
-    private void TraverseValve(Valve valve, List<string> openValves, int totalPressure, int minutesRemaining, string path = "")
-    {
-        minutesRemaining--;
+        if (!targets.Any()) return totalPressure;
 
-        path = $"{path}{valve.Id},";
-
-        // prune slow branches
-        if (minutesRemaining == 12) // picked a mid-way number sorta at random
+        foreach (var next in targets)
         {
-            if (totalPressure + 200 > _bestNearMid) // can continue if we're close enough
-            {
-                if (totalPressure >= _bestNearMid)
-                    _bestNearMid = totalPressure;
-            }
-            else
-                return;
+            bestPathScore = Math.Max(bestPathScore, 
+                TakePath(minutes - next.Value.Dist - 1, next.Key, new List<string>(opened) { next.Key }, totalPressure + TargetScore(current, next.Key, minutes)));
         }
-
-        if (minutesRemaining == 5) // picked a number sorta at random
-        {
-            if (totalPressure + 100 > _bestNearEnd) // can continue if we're close enough
-            {
-                if (totalPressure >= _bestNearEnd)
-                    _bestNearEnd = totalPressure;
-            }
-            else
-                return;
-        }
-
-        // time is up or all valves are open
-        if (minutesRemaining <= 0)
-        {
-            if (totalPressure > _highestTotalPressure)
-            {
-                _highestTotalPressure = totalPressure;
-                _pathOfBestPressure = path;
-                if (totalPressure > 1650)
-                {
-                    _logger.Log(totalPressure);
-                    _logger.Log(_pathOfBestPressure);
-                }
-            }
-            return;
-        }
-
-        // if this valve isn't open and will get SOME benefit from opening it, create a path where we open it
-        if (!openValves.Contains(valve.Id) && valve.FlowRate != 0)
-        {
-            var updatedOpenValves = new List<string>(openValves)
-            {
-                valve.Id
-            };
-            TraverseValve(valve, updatedOpenValves, totalPressure + valve.FlowRate * (minutesRemaining - 1), minutesRemaining, path);
-        }
-
-        // traverse all other universes where you don't open this one
-        // need something to prune these paths as they're usually not the most efficient
-        foreach (var nextValveId in valve.NextValves.OrderByDescending(id => ScoreToGoTo(id, openValves, minutesRemaining, 1)))
-        {
-            //if (!openValves.Contains(nextValve.Id))
-            TraverseValve(_valves[nextValveId], openValves, totalPressure, minutesRemaining, path);
-        }
-
-        if (totalPressure > _highestTotalPressure)
-        {
-            //_logger.Log(totalPressure);
-            _highestTotalPressure = totalPressure;
-            _pathOfBestPressure = path;
-            if (totalPressure > 1650)
-                _logger.Log(_pathOfBestPressure);
-        }
-    }
-
-    private int ScoreToOpenValve(string id, List<string> openedAlready, int minutesRemaining, int depth = 8, List<string> pretendOpened = null, int currentPathScore = 0)
-    {
-        int scoreIfWeOpen = _valves[id].FlowRate * (minutesRemaining - 1);
-        pretendOpened = pretendOpened != null ? new(pretendOpened) { id } : new List<string>() { id };
-        
-        int bestScoreIfWeSkip = 0;
-        depth = Math.Min(depth, minutesRemaining);
-        if (depth > 0)
-        {
-            foreach (var nextValveId in _valves[id].NextValves)
-                bestScoreIfWeSkip = Math.Max(bestScoreIfWeSkip, ScoreToGoTo(nextValveId, openedAlready, minutesRemaining - 1, depth - 1, pretendOpened, currentPathScore));
-        }
-        return currentPathScore + Math.Max(scoreIfWeOpen, bestScoreIfWeSkip);
-    }
-
-    private int ScoreToGoTo(string id, List<string> openedAlready, int minutesRemaining, int depth = 8, List<string> pretendOpened = null, int currentPathScore = 0)
-    {
-        int scoreIfWeOpen = 0;
-        if (depth > 0 && CanOpenValve(id, openedAlready, pretendOpened)) 
-            scoreIfWeOpen = ScoreToOpenValve(id, openedAlready, minutesRemaining - 1, depth - 1, pretendOpened, currentPathScore);
-        
-        int bestScoreIfWeSkip = 0;
-        depth = Math.Min(depth, minutesRemaining);
-        if (depth > 0)
-        {
-            foreach (var nextValveId in _valves[id].NextValves)
-                bestScoreIfWeSkip = Math.Max(bestScoreIfWeSkip, ScoreToGoTo(nextValveId, openedAlready, minutesRemaining - 1, depth - 1, pretendOpened, currentPathScore));
-        }
-
-        bool CanOpenValve(string id, List<string> openedAlready, List<string> pretendOpened)
-        {
-           return _valves[id].FlowRate > 0 && !openedAlready.Contains(id) && (pretendOpened == null || !pretendOpened.Contains(id));
-        }
-
-        return currentPathScore + Math.Max(scoreIfWeOpen, bestScoreIfWeSkip);
+        return bestPathScore;
     }
 
     public override void SolvePart2()
     {
-        SolvePart2Method();
-        //_logger.Log(1707);
-        //return;
-        //DoubleTraverseValve(_startingValve, _startingValve, new List<string>(), 0, 27);
-        _logger.Log(_pathOfBestPressure);
-        _logger.Log(_highestTotalPressure); // ABOVE 2433, above 2454, not 2513 either
+        _logger.Log(TakeTwoPaths(26, "AA", "AA", new List<string>()));
+        _logger.Log(1707);
     }
 
-    // count the number of moved to each point
+    private int TakeTwoPaths(int minutes, string current1, string current2, List<string> opened, string target1 = "", string target2 = "",  int totalPressure = 0)
+    {
+        if (opened != null && opened.Count == _valvesWithFlow) return totalPressure;
+        
+        int bestPathScore = 0;
+
+
+        if (string.IsNullOrEmpty(target1))
+        {
+            var targets1 = _distanceMap[current1].
+                Where(kvp => FlowRateOf(kvp.Key) > 0 && kvp.Value.Dist < minutes && !opened.Contains(kvp.Key) && kvp.Key != target2).
+                OrderByDescending(kvp => TargetScore(current1, kvp.Key, minutes));
+
+            if (string.IsNullOrEmpty(target2))
+            {
+                var targets2 = _distanceMap[current2].
+                    Where(kvp => FlowRateOf(kvp.Key) > 0 && kvp.Value.Dist < minutes && !opened.Contains(kvp.Key)).
+                    OrderByDescending(kvp => TargetScore(current1, kvp.Key, minutes));
+
+                if (!targets1.Any() && !targets2.Any()) return totalPressure;
+
+                foreach (var targetFor1 in targets1)
+                {
+                    foreach (var targetFor2 in targets2)
+                    {
+                        if (targetFor1.Key == targetFor2.Key) continue;
+
+                        var target1Dist = targetFor1.Value.Dist;
+                        var target2Dist = targetFor2.Value.Dist;
+
+                        if (target1Dist == target2Dist)
+                        {
+                            // subtract the same amount from minutes
+                            var updatedList = new List<string>(opened) { targetFor1.Key, targetFor2.Key };
+                            var updatedScore = totalPressure + TargetScore(current1, targetFor1.Key, minutes) + TargetScore(current2, targetFor2.Key, minutes);
+                            bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target1Dist - 1, targetFor1.Key, targetFor2.Key, updatedList, totalPressure: updatedScore));
+                        }
+                        else if (target1Dist < target2Dist)
+                        {
+                            // subtract just target 1's distance from minutes
+                            var updatedList = new List<string>(opened) { targetFor1.Key };
+                            var updatedScore = totalPressure + TargetScore(current1, targetFor1.Key, minutes);
+                            var updatedCurrent2 = StepTowards(current2, targetFor2.Key, target1Dist + 1);
+                            bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target1Dist - 1, targetFor1.Key, updatedCurrent2, updatedList, target2: targetFor2.Key, totalPressure: updatedScore));
+                        }
+                        else 
+                        {
+                            // subtract just target 2's distance from minutes
+                            var updatedList = new List<string>(opened) { targetFor2.Key };
+                            var updatedScore = totalPressure + TargetScore(current2, targetFor2.Key, minutes);
+                            var updatedCurrent1 = StepTowards(current1, targetFor1.Key, target2Dist + 1);
+                            bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target2Dist - 1, updatedCurrent1, targetFor2.Key, updatedList, target1: targetFor1.Key, totalPressure: updatedScore));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var target2Dist = DistanceBetween(current2, target2);
+
+                foreach (var targetFor1 in targets1)
+                {
+                    var target1Dist = targetFor1.Value.Dist;
+
+                    if (target1Dist == target2Dist)
+                    {
+                        // subtract the same amount from minutes
+                        var updatedList = new List<string>(opened) { targetFor1.Key, target2 };
+                        var updatedScore = totalPressure + TargetScore(current1, targetFor1.Key, minutes) + TargetScore(current2, target2, minutes);
+                        bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target1Dist - 1, targetFor1.Key, target2, updatedList, totalPressure: updatedScore));
+                    }
+                    else if (target1Dist < target2Dist)
+                    {
+                        // subtract just target 1's distance from minutes
+                        var updatedList = new List<string>(opened) { targetFor1.Key };
+                        var updatedScore = totalPressure + TargetScore(current1, targetFor1.Key, minutes);
+                        var updatedCurrent2 = StepTowards(current2, target2, target1Dist + 1);
+                        bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target1Dist - 1, targetFor1.Key, updatedCurrent2, updatedList, target2: target2, totalPressure: updatedScore));
+                    }
+                    else
+                    {
+                        // subtract just target 2's distance from minutes
+                        var updatedList = new List<string>(opened) { target2 };
+                        var updatedScore = totalPressure + TargetScore(current2, target2, minutes);
+                        var updatedCurrent1 = StepTowards(current1, targetFor1.Key, target2Dist + 1);
+                        bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target2Dist - 1, updatedCurrent1, target2, updatedList, target1: targetFor1.Key, totalPressure: updatedScore));
+                    }
+                }
+            }
+        }
+        else if (string.IsNullOrEmpty(target2))
+        {
+            var targets2 = _distanceMap[current2].
+                    Where(kvp => FlowRateOf(kvp.Key) > 0 && kvp.Value.Dist < minutes && !opened.Contains(kvp.Key) && kvp.Key != target1).
+                    OrderByDescending(kvp => TargetScore(current1, kvp.Key, minutes));
+
+            if (!targets2.Any())
+            {
+                // TODO: finish up current target1's objective
+                return totalPressure;
+            }
+
+            foreach (var targetFor2 in targets2)
+            {
+                var target1Dist = DistanceBetween(current1, target1);
+                var target2Dist = targetFor2.Value.Dist;
+
+                if (target1Dist == target2Dist)
+                {
+                    // subtract the same amount from minutes
+                    var updatedList = new List<string>(opened) { target1, targetFor2.Key };
+                    var updatedScore = totalPressure + TargetScore(current1, target1, minutes) + TargetScore(current2, targetFor2.Key, minutes);
+                    bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target1Dist - 1, target1, targetFor2.Key, updatedList, totalPressure: updatedScore));
+                }
+                else if (target1Dist < target2Dist)
+                {
+                    // subtract just target 1's distance from minutes
+                    var updatedList = new List<string>(opened) { target1 };
+                    var updatedScore = totalPressure + TargetScore(current1, target1, minutes);
+                    var updatedCurrent2 = StepTowards(current2, targetFor2.Key, target1Dist + 1);
+                    bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target1Dist - 1, target1, updatedCurrent2, updatedList, target2: targetFor2.Key, totalPressure: updatedScore));
+                }
+                else
+                {
+                    // subtract just target 2's distance from minutes
+                    var updatedList = new List<string>(opened) { targetFor2.Key };
+                    var updatedScore = totalPressure + TargetScore(current2, targetFor2.Key, minutes);
+                    var updatedCurrent1 = StepTowards(current1, target1, target2Dist + 1);
+                    bestPathScore = Math.Max(bestPathScore, TakeTwoPaths(minutes - target2Dist - 1, updatedCurrent1, targetFor2.Key, updatedList, target1: target1, totalPressure: updatedScore));
+                }
+            }
+        }
+        
+        return bestPathScore;
+    }
 
     private void SolvePart2Method()
     {
+        int totalPressure = 0;
+        List<string> openedValves = new();
+        string current1 = "AA";
+        string current2 = "AA";
         string target1 = string.Empty;
         string target2 = string.Empty;
-        
-        for (int minutes = 26; minutes >= 0; minutes--)
+
+        HashSet<string> target1Path = new();
+        HashSet<string> target2Path = new();
+
+        for (int minutes = 26; minutes > 0; minutes--)
         {
+            if (openedValves.Count == _valvesWithFlow) break;
 
+            // get the cost to the top two next nodes
+            // compare against the cost difference if the other runner took your best one and you took the second best instead
 
+            if (string.IsNullOrEmpty(target1))
+            {
+                target1 = _distanceMap[current1].
+                        Where(kvp => !openedValves.Contains(kvp.Key) && kvp.Key != target2 && _valves[kvp.Key].FlowRate > 0).
+                        OrderByDescending(kvp => TargetScore(current1, kvp.Key, minutes)).
+                        Select(kvp => kvp.Key).
+                        FirstOrDefault();
+                if (string.IsNullOrEmpty(target2))
+                {
+                    // get list, compare against target1's list to see if we have a better score
+                    target2 = _distanceMap[current2].
+                    Where(kvp => !openedValves.Contains(kvp.Key) && kvp.Key != target1 && _valves[kvp.Key].FlowRate > 0).
+                    OrderByDescending(kvp => TargetScore(current2, kvp.Key, minutes)).
+                    FirstOrDefault().Key;
+                    target2Path.Add(target2);
+                    _logger.Log($"Target 2 Selected {target2}");
+                }
+                // take top from list
+                target1Path.Add(target1);
+                _logger.Log($"Target 1 Selected {target1}");
+            }
+            else if (string.IsNullOrEmpty(target2))
+            {
+                target2 = _distanceMap[current2].
+                    Where(kvp => !openedValves.Contains(kvp.Key) && kvp.Key != target1 && _valves[kvp.Key].FlowRate > 0).
+                    OrderByDescending(kvp => TargetScore(current2, kvp.Key, minutes)).
+                    FirstOrDefault().Key;
+                target2Path.Add(target2);
+                _logger.Log($"Target 2 Selected {target2}");
+            }
 
-            // calculate
+            if (current1 == target1 && !openedValves.Contains(target1) && _valves[target1].FlowRate > 0)
+            {
+                openedValves.Add(target1);
+                totalPressure += _valves[target1].FlowRate * (minutes - 1);
+                target1 = string.Empty;
+            }
+            else if (!string.IsNullOrEmpty(target1))
+            {
+                current1 = _distanceMap[current1][target1].Next;
+            }
 
-            // decide
-
-            // do action
-
-
-
+            if (current2 == target2 && !openedValves.Contains(target2) && _valves[target2].FlowRate > 0)
+            {
+                openedValves.Add(target2);
+                totalPressure += _valves[target2].FlowRate * (minutes - 1);
+                target2 = string.Empty;
+            }
+            else if (!string.IsNullOrEmpty(target2))
+            {
+                current2 = _distanceMap[current2][target2].Next;
+            }
         }
 
+        _logger.Log(target1Path.Aggregate("", (a, b) => $"{a}{b},"));
+        _logger.Log(target2Path.Aggregate("", (a, b) => $"{a}{b},"));
+
+        _logger.Log(totalPressure);
 
     }
 
+   
+    private string StepTowards(string current, string target, int steps)
+    {
+        if (DistanceBetween(current, target) <= steps) return target;
+        else
+        {
+            for (int i = 0; i < steps; i++)
+                current = _distanceMap[current][target].Next;
+        }
+        return current;
+    }
 
+    private int TargetScore(string current, string target, int minutes)
+    {
+        var distance = DistanceBetween(current, target);
+        var score = (minutes - distance - 1) * FlowRateOf(target);
+        return score;
+    }
 
-
-
-
-
-    //private void DoubleTraverseValve(Valve me, Valve elephant, List<string> openValves, int totalPressure, int minutesRemaining, string path = "")
-    //{
-    //    minutesRemaining--;
-
-    //    path = $"{path}{me.Id}/{elephant.Id},";
-
-    //    // prune slow branches
-    //    if (minutesRemaining == 14) // picked a number sorta at random
-    //    {
-    //        if (totalPressure > _bestAtBeginning) // can continue if we're close enough
-    //        {
-    //            //if (totalPressure > _bestAtBeginning)
-    //            //{
-    //            //    _bestAtBeginning = totalPressure;
-    //            //    _logger.Log($"Beginning: {_bestAtBeginning}");
-    //            //}
-    //        }
-    //        else
-    //            return;
-    //    }
-    //    if (minutesRemaining == 10) // picked a number sorta at random
-    //    {
-    //        if (totalPressure > _bestNearMid) // can continue if we're close enough
-    //        {
-    //            //if (totalPressure > _bestNearMid)
-    //            //{
-    //            //    _bestNearMid = totalPressure;
-    //            //    _logger.Log($"Mid: {_bestNearMid}");
-    //            //}
-    //        }
-    //        else
-    //            return;
-    //    }
-    //    if (minutesRemaining == 5) // picked a number sorta at random
-    //    {
-    //        if (totalPressure >= _bestNearEnd)
-    //        {
-    //            //if (totalPressure > _bestNearEnd)
-    //            //{
-    //            //    _bestNearEnd = totalPressure;
-    //            //    _logger.Log($"End: {_bestNearEnd}");
-    //            //}
-    //        }
-    //        else
-    //            return;
-    //    }
-
-    //    // all new high scores
-    //    if (totalPressure > _highestTotalPressure)
-    //    {
-    //        _highestTotalPressure = totalPressure;
-    //        _pathOfBestPressure = path;
-    //        _logger.Log(totalPressure);
-            
-    //        if (totalPressure > 1650)
-    //            _logger.Log(_pathOfBestPressure);
-    //    }
-
-    //    // time is up or all valves are open
-    //    if (minutesRemaining <= 0 || _valvesWithFlow == openValves.Count)
-    //    {
-    //        return;
-    //    }
-
-    //    string myNextBestId = me.Id;
-    //    int myLeadingScore = me.FlowRate == 0 || openValves.Contains(me.Id) ? 0 : ScoreToOpenValve(me.Id, openValves, minutesRemaining - 1);
-
-    //    string mySecondBestId = "";
-    //    int mySecondBestScore = 0;
-
-    //    foreach (var myNextId in me.NextValves)
-    //    {
-    //        var nextScore = ScoreToGoTo(myNextId, openValves, minutesRemaining - 1);
-    //        if (nextScore > myLeadingScore)
-    //        {
-    //            mySecondBestId = myNextBestId;
-    //            mySecondBestScore = myLeadingScore;
-
-    //            myNextBestId = myNextId;
-    //            myLeadingScore = nextScore;
-    //        }
-    //        else if (nextScore > mySecondBestScore)
-    //        {
-    //            mySecondBestId = myNextId;
-    //            mySecondBestScore = nextScore;
-    //        }
-    //    }
-
-    //    var myNextValve = _valves[myNextBestId];
-
-    //    // take top two paths, split
-    //    if (elephant == me)
-    //    {
-    //        var elephantNextValve = (string.IsNullOrEmpty(mySecondBestId)) ? myNextValve : _valves[mySecondBestId];
-
-    //        if (me.Id == myNextValve.Id && !openValves.Contains(myNextValve.Id))
-    //        {
-    //            var newOpenValves = new List<string>(openValves) { myNextValve.Id };
-
-    //            if (elephant.Id == elephantNextValve.Id && !openValves.Contains(elephantNextValve.Id))
-    //            {
-    //                newOpenValves.Add(elephantNextValve.Id);
-    //                // both opening
-    //                DoubleTraverseValve(myNextValve, elephantNextValve, newOpenValves, totalPressure + (myNextValve.FlowRate + elephantNextValve.FlowRate) * (minutesRemaining - 1), minutesRemaining, path);
-    //            }
-    //            else
-    //            {
-    //                // just me opening
-    //                DoubleTraverseValve(myNextValve, elephantNextValve, newOpenValves, totalPressure + myNextValve.FlowRate * (minutesRemaining - 1), minutesRemaining, path);
-    //            }
-    //        }
-    //        else if (elephant.Id == mySecondBestId && !openValves.Contains(elephant.Id)) // just elephant opening
-    //        {
-    //            var newOpenValves = new List<string>(openValves) { mySecondBestId };
-    //            DoubleTraverseValve(myNextValve, elephantNextValve, newOpenValves, totalPressure + elephantNextValve.FlowRate * (minutesRemaining - 1), minutesRemaining, path);
-    //        }
-    //        else // both just traveling
-    //        {
-    //            DoubleTraverseValve(myNextValve, elephantNextValve, openValves, totalPressure, minutesRemaining, path);
-    //        }
-    //    }
-    //    else // elephant needs to determine its next best path(s)
-    //    {
-    //        string elNextBestId = elephant.Id;
-    //        int elLeadingScore = elephant.FlowRate == 0 || openValves.Contains(elephant.Id) ? 0 : ScoreToOpenValve(elephant.Id, openValves, minutesRemaining - 1);
-
-    //        string elSecondBestId = "";
-    //        int elSecondBestScore = 0;
-
-    //        foreach (var elNextId in elephant.NextValves)
-    //        {
-    //            var nextScore = ScoreToGoTo(elNextId, openValves, minutesRemaining - 1);
-    //            if (nextScore > elLeadingScore)
-    //            {
-    //                elSecondBestId = elNextBestId;
-    //                elSecondBestScore = elLeadingScore;
-
-    //                elNextBestId = elNextId;
-    //                elLeadingScore = nextScore;
-    //            }
-    //            else if (nextScore > elSecondBestScore)
-    //            {
-    //                elSecondBestId = elNextId;
-    //                elSecondBestScore = nextScore;
-    //            }
-    //        }
-
-    //        var elephantNextValve = _valves[elNextBestId];
-
-    //        for (int i = 0; i < 4; i++)
-    //        {
-    //            switch (i)
-    //            {
-    //                // case 0 is already set up: both going to first best
-    //                case 1:
-    //                    if (string.IsNullOrEmpty(elSecondBestId)) continue;
-    //                    // switch elephant to second
-    //                    elephantNextValve = _valves[elSecondBestId];
-    //                    break;
-    //                case 2:
-    //                    if (string.IsNullOrEmpty(mySecondBestId)) continue;
-    //                    // switch me to second, elephant to first
-    //                    myNextValve = _valves[mySecondBestId];
-    //                    elephantNextValve = _valves[elNextBestId];
-    //                    break;
-    //                case 3:
-    //                    if (string.IsNullOrEmpty(elSecondBestId)) continue;
-    //                    // switch elephant to second
-    //                    elephantNextValve = _valves[elSecondBestId];
-    //                    break;
-    //            }
-
-    //            if (me.Id == myNextValve.Id && !openValves.Contains(myNextValve.Id)) // me opens valve at a minimum
-    //            {
-    //                var newOpenValves = new List<string>(openValves) { myNextValve.Id };
-
-    //                if (elephant.Id == elephantNextValve.Id && !openValves.Contains(elephantNextValve.Id))
-    //                {
-    //                    newOpenValves.Add(elephantNextValve.Id);
-    //                    // both opening
-    //                    DoubleTraverseValve(myNextValve, elephantNextValve, newOpenValves, totalPressure + (myNextValve.FlowRate + elephantNextValve.FlowRate) * (minutesRemaining - 1), minutesRemaining, path);
-    //                }
-    //                else
-    //                {
-    //                    // just me opening
-    //                    DoubleTraverseValve(myNextValve, elephantNextValve, newOpenValves, totalPressure + myNextValve.FlowRate * (minutesRemaining - 1), minutesRemaining, path);
-    //                }
-    //            }
-    //            else if (elephant.Id == elephantNextValve.Id && !openValves.Contains(elephantNextValve.Id)) // just elephant opening
-    //            {
-    //                var newOpenValves = new List<string>(openValves) { elephantNextValve.Id };
-    //                DoubleTraverseValve(myNextValve, elephantNextValve, newOpenValves, totalPressure + elephantNextValve.FlowRate * (minutesRemaining - 1), minutesRemaining, path);
-    //            }
-    //            else // both just traveling
-    //            {
-    //                DoubleTraverseValve(myNextValve, elephantNextValve, openValves, totalPressure, minutesRemaining, path);
-    //            }
-        //    }
-        //}
-    //}
+    private int DistanceBetween(string from, string to) => from == to ? 0 : _distanceMap[from][to].Dist;
+    
+    private int FlowRateOf(string valve) => _valves[valve].FlowRate;
 
     private class Valve
     {
         public string Id;
         public int FlowRate;
         public string[] NextValves;
-        //public readonly List<Valve> NextValves = new();
-        //public bool IsOpen = false;
         
         public Valve(string id, int flowRate, string[] targetIds)
         {
