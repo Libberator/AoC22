@@ -6,7 +6,7 @@ namespace AoC22;
 
 public partial class Day18 : Puzzle
 {
-    private readonly List<Vector3Int> _positions = new();
+    private readonly HashSet<Vector3Int> _positions = new();
     private Bounds3D _bounds;
     public Day18(ILogger logger, string path) : base(logger, path) { }
 

@@ -1,8 +1,8 @@
 ﻿using AoC22;
 using System;
 
-const int START_DAY = 18;
-const int STOP_DAY = 18;
+const int START_DAY = 16;
+const int STOP_DAY = 16;
 
 var logger = new ConsoleLogger();
 
