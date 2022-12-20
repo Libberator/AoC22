@@ -41,9 +41,8 @@ public class Day19 : Puzzle
 
         int totalQualityLevel = 0;
 
-        foreach (var blueprint in _blueprints.Take(3))
+        foreach (var blueprint in _blueprints)
         {
-            _logger.Log($"Blueprint {blueprint.Id}");
             var geodesCollected = RunCycles(blueprint, _startingRobots, new Rocks(), 24, new());
             var qualityLevel = geodesCollected * blueprint.Id;
             totalQualityLevel += qualityLevel;
@@ -52,16 +51,47 @@ public class Day19 : Puzzle
         _logger.Log(totalQualityLevel); // 1719
     }
 
+    public override void SolvePart2()
+    {
+        _logger.Log(56 * 62); // Test Data
+        return;
+
+        var timer = new Stopwatch();
+        timer.Start();
+
+        int score = 1;
+
+        foreach (var blueprint in _blueprints.Take(3))
+        {
+            _mostGeodes = 15;
+            var geodesCollected = RunCycles(blueprint, _startingRobots, new Rocks(), 32, new());
+            score *= geodesCollected;
+            _logger.Log($"Blueprint #{blueprint.Id} collected {geodesCollected}");
+        }
+
+        timer.Stop();
+        _logger.Log($"Part 2 took {timer.ElapsedMilliseconds} ms");
+
+        _logger.Log(score);
+    }
+
+    private int _mostGeodes = 15;
 
     private int RunCycles(Blueprint blueprint, Rocks robots, Rocks inventory, int minutesRemaining, List<(int,int)> purchaseHistory)
     {
-        if (blueprint.Id == 1 && inventory.Geode >= 9)
+        if (TotalGeodes() > _mostGeodes) // this part just for debugging
         {
+            _mostGeodes = inventory.Geode + robots.Geode * minutesRemaining;
             var path = purchaseHistory.Aggregate("", (a, b) => $"{a}{b.Item1}-{b.Item2},");
-            _logger.Log($"[{inventory.Geode} geodes, {minutesRemaining} min left] {path}");
+            _logger.Log($"[{_mostGeodes} geodes, {minutesRemaining} min left] {path}");
         }
 
-        if (minutesRemaining <= 1) return inventory.Geode + robots.Geode * minutesRemaining;
+        if (minutesRemaining <= 7 && TotalGeodes() < 15) // adjust branch pruning values here
+        {
+            return TotalGeodes();
+        }
+
+        if (minutesRemaining <= 1) return TotalGeodes();
 
         var bestScore = 0;
         for (int i = 3; i >= 0; i--)
@@ -75,7 +105,9 @@ public class Day19 : Puzzle
             }
         }
 
-        return Math.Max(inventory.Geode + minutesRemaining * robots.Geode, bestScore);
+        return Math.Max(TotalGeodes(), bestScore);
+
+        int TotalGeodes() => inventory.Geode + minutesRemaining * robots.Geode;
     }
     
     private static bool CanPurchaseRobot(int rockType, Blueprint blueprint, Rocks robots, Rocks inventory, out int reqdMinutes)
@@ -93,30 +125,6 @@ public class Day19 : Puzzle
         }
 
         return true;
-    }
-
-
-    public override void SolvePart2()
-    {
-        _logger.Log(56 * 62); // Test Data
-        return;
-
-        var timer = new Stopwatch();
-        timer.Start();
-
-        int totalQualityLevel = 1;
-
-        foreach (var blueprint in _blueprints.Take(3))
-        {
-            var geodesCollected = RunCycles(blueprint, _startingRobots, new Rocks(), 32, new());
-            totalQualityLevel *= geodesCollected;
-            _logger.Log($"Blueprint #{blueprint.Id} collected {geodesCollected}");
-        }
-
-        timer.Stop();
-        _logger.Log($"Part 2 took {timer.ElapsedMilliseconds} ms");
-
-        _logger.Log(totalQualityLevel);
     }
 
     private class Blueprint
