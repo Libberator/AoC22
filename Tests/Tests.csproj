@@ -37,13 +37,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Day18Test\input.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Day18Test\results.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

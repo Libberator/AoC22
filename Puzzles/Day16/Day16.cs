@@ -49,30 +49,44 @@ public class Day16 : Puzzle
 
     public override void SolvePart1()
     {
+        _snapshots.Clear();
         var score = TakePath(30, "AA", new List<string>());
-        _logger.Log(score);
+        _logger.Log(score); // 1651 for test data. 2087 for real
     }
 
     public override void SolvePart2()
     {
-        _logger.Log(1707); // for some reason running the test data returns 1705 - takes a wrong path & doesn't explore all?
-        return;
+        //_logger.Log(1707); // for some reason running the test data returns 1705 - takes a wrong path & doesn't explore all?
+        //return;
+        _snapshots.Clear();
         var score = TakeTwoPaths(26, "AA", "AA", new List<string>());
         _logger.Log(score); // 2591 is the expected answer
     }
+
+    private readonly Dictionary<string, int> _snapshots = new();
+    private int _currentMax = 0;
+    // how to not revisit same transposition? match explored (any order) - compare pressure total? compare minutes? Might not work..
+    // maybe just getting a MaxPossible would be better?
+    private record struct Snapshot(int MinutesRemaining, List<string> OpenedValves);
 
     private int TakePath(int minutes, string current, List<string> opened, int totalPressure = 0)
     {
         if (opened.Count == _valvesWithFlow) return totalPressure;
 
+        // Pruning
+        var snapshot = opened.Order().Aggregate("", (a, b) => $"{a}{b}");
+        if (_snapshots.TryGetValue(snapshot, out var value) && totalPressure < value) return totalPressure;
+        _snapshots[snapshot] = totalPressure;
+
         if (!TryGetTargets(minutes, current, opened, out var targets)) return totalPressure;
 
-        int bestPathScore = 0;
+        int bestPathScore = totalPressure;
         foreach (var next in targets)
         {
             bestPathScore = Math.Max(bestPathScore,
                 TakePath(minutes - next.Value.Dist - 1, next.Key, new List<string>(opened) { next.Key }, totalPressure + ScoreFor(current, next.Key, minutes)));
         }
+
         return bestPathScore;
     }
 
@@ -85,11 +99,13 @@ public class Day16 : Puzzle
             _logger.Log($"[{minutes}] {totalPressure} - {path}");
             _currentLeadingPressure = totalPressure;
         }
-
         if (opened.Count == _valvesWithFlow) return totalPressure;
 
-        int bestPathScore = 0;
+        // Pruning
+        var snapshot = opened.Order().Aggregate("", (a, b) => $"{a}{b}");
+        if (_snapshots.TryGetValue(snapshot, out var value) && MaxPossibleFlow() < value) return totalPressure;
 
+        int bestPathScore = totalPressure; // + future posibility space pressure? nah I think it's included already
         if (string.IsNullOrEmpty(target1) && TryGetTargets(minutes, current1, opened, target2, out var targets1))
         {
             if (string.IsNullOrEmpty(target2) && TryGetTargets(minutes, current2, opened, target1, out var targets2))
@@ -124,7 +140,19 @@ public class Day16 : Puzzle
                 bestPathScore = Math.Max(bestPathScore, Recurse(minutes, current1, current2, opened, target1, targetFor2.Key, totalPressure, target1Dist, target2Dist));
             }
         }
+        _snapshots[snapshot] = totalPressure;
         return bestPathScore;
+
+        int MaxPossibleFlow()
+        {
+            for (int m = minutes - 1; m >= 0; m--)
+            {
+
+            }
+
+
+            return totalPressure;
+        }
     }
 
     // this always sets 1 or both targets to "" so that we always get a new target next cycle

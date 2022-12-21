@@ -1,10 +1,11 @@
 ﻿using AoC22;
 using System;
+using System.Diagnostics;
 
-const int START_DAY = 19;
-const int STOP_DAY = 19;
+const int START_DAY = 16;
+const int STOP_DAY = 16;
 
-var logger = new ConsoleLogger();
+ILogger logger = new ConsoleLogger();
 
 for (int i = START_DAY; i <= STOP_DAY; i++)
 {
@@ -20,11 +21,14 @@ for (int i = START_DAY; i <= STOP_DAY; i++)
         continue;
     }
 
+    var timer = new Stopwatch();
+    timer.Start();
     puzzle.Setup();
 
     puzzle.SolvePart1();
 
     puzzle.SolvePart2();
+    logger.Log($"Total run time: {timer.ElapsedMilliseconds} ms");
 }
 
 #if !DEBUG

@@ -21,10 +21,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Day19\input - Copy.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-	
 </Project>
