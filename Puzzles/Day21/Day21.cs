@@ -22,14 +22,7 @@ public class Day21 : Puzzle
                 monkey = new(id, value);
             else
             {
-                var operation = job[5] switch
-                {
-                    '+' => Operation.Add,
-                    '-' => Operation.Subtract,
-                    '*' => Operation.Multiply,
-                    '/' => Operation.Divide,
-                    _ => throw new Exception($"Invalid input: [{job[5]}]"),
-                };
+                var operation = job[5];
                 var left = job[..4];
                 var right = job[^4..];
                 monkey = new(id, operation, left, right);
@@ -47,7 +40,7 @@ public class Day21 : Puzzle
     // x1 = x0 - f(x0) / f'(x0)
     public override void SolvePart2()
     {
-        _root.Operation = Operation.Subtract; // equality (=) is just subtraction and comparing against 0
+        _root.Operation = '-'; // equality (=) is just subtraction and comparing against 0
 
         var x0 = _human.Value;
         var y0 = _root.GetValue(_monkeys);
@@ -69,13 +62,13 @@ public class Day21 : Puzzle
     private class Monkey
     {
         public readonly string Id;
-        public Operation Operation = Operation.None;
         public double Value; // Using doubles because whole numbers won't be as accurate for part 2 due to integer (or long) division
+        public char Operation;
         public readonly string Left, Right;
 
         public Monkey(string id) => Id = id;
         public Monkey(string id, double value) : this(id) => Value = value;
-        public Monkey(string id, Operation operation, string left, string right) : this(id)
+        public Monkey(string id, char operation, string left, string right) : this(id)
         {
             Operation = operation;
             Left = left;
@@ -86,22 +79,12 @@ public class Day21 : Puzzle
         {
             return Operation switch
             {
-                Operation.None => Value,
-                Operation.Add => lookup[Left].GetValue(lookup) + lookup[Right].GetValue(lookup),
-                Operation.Subtract => lookup[Left].GetValue(lookup) - lookup[Right].GetValue(lookup),
-                Operation.Multiply => lookup[Left].GetValue(lookup) * lookup[Right].GetValue(lookup),
-                Operation.Divide => lookup[Left].GetValue(lookup) / lookup[Right].GetValue(lookup),
-                _ => throw new Exception($"Undefined or out-of bounds enum: {Operation}"),
+                '+' => lookup[Left].GetValue(lookup) + lookup[Right].GetValue(lookup),
+                '-' => lookup[Left].GetValue(lookup) - lookup[Right].GetValue(lookup),
+                '*' => lookup[Left].GetValue(lookup) * lookup[Right].GetValue(lookup),
+                '/' => lookup[Left].GetValue(lookup) / lookup[Right].GetValue(lookup),
+                _ => Value,
             };
         }
-    }
-
-    private enum Operation
-    {
-        None,
-        Add,
-        Subtract,
-        Multiply,
-        Divide,
     }
 }
