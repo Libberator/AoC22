@@ -6,7 +6,7 @@ namespace AoC22;
 
 public class Day19 : Puzzle
 {
-    private readonly  List<Blueprint> _blueprints = new();
+    private readonly List<Blueprint> _blueprints = new();
     private static readonly Material _startingRobots = new(1, 0, 0, 0);
 
     public Day19(ILogger logger, string path) : base(logger, path) { }
@@ -14,7 +14,7 @@ public class Day19 : Puzzle
     public override void Setup()
     {
         var pattern = Utils.NumberPattern();
-        
+
         foreach (var line in ReadFromFile())
         {
             var numbers = pattern.Matches(line);
@@ -61,7 +61,7 @@ public class Day19 : Puzzle
     // Used for pruning branches
     private readonly Dictionary<Snapshot, int> _snapshots = new();
     private int _currentMax = 0;
-    
+
     private int StartCycles(int maxMinutes, Blueprint blueprint, int elapsedMinutes = 0)
     {
         _currentMax = 0;
@@ -74,7 +74,7 @@ public class Day19 : Puzzle
         var mostGeodes = TotalGeodes();
         if (mostGeodes > _currentMax) _currentMax = mostGeodes;
         if (elapsedMinutes == maxMinutes) return inventory.Geode;
-        
+
         // Pruning. Removing branches where even the most optimistic (buying geode robot every round) won't beat current max
         if (MaxGeodesPossible() < _currentMax) return mostGeodes;
         // Pruning. Removing branches we've already gone down. aka eliminating "transpositions"

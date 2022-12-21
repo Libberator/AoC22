@@ -2,8 +2,8 @@
 using System;
 using System.Diagnostics;
 
-const int START_DAY = 16;
-const int STOP_DAY = 16;
+const int START_DAY = 21;
+const int STOP_DAY = 21;
 
 ILogger logger = new ConsoleLogger();
 
@@ -21,14 +21,25 @@ for (int i = START_DAY; i <= STOP_DAY; i++)
         continue;
     }
 
-    var timer = new Stopwatch();
-    timer.Start();
+    var overallTimer = new Stopwatch();
+    var setupTimer = new Stopwatch();
+    var part1Timer = new Stopwatch();
+    var part2Timer = new Stopwatch();
+
+    overallTimer.Start();
+    setupTimer.Start();
     puzzle.Setup();
+    setupTimer.Stop();
 
+    part1Timer.Start();
     puzzle.SolvePart1();
+    part1Timer.Stop();
 
+    part2Timer.Start();
     puzzle.SolvePart2();
-    logger.Log($"Total run time: {timer.ElapsedMilliseconds} ms");
+    part2Timer.Stop();
+    overallTimer.Stop();
+    logger.Log($"Setup: {setupTimer.ElapsedMilliseconds}ms. Part1: {part1Timer.ElapsedMilliseconds}ms. Part2: {part2Timer.ElapsedMilliseconds}ms. Total: {overallTimer.ElapsedMilliseconds}ms");
 }
 
 #if !DEBUG
