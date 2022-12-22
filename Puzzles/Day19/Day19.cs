@@ -9,7 +9,7 @@ public class Day19 : Puzzle
     private readonly List<Blueprint> _blueprints = new();
     private static readonly Material _startingRobots = new(1, 0, 0, 0);
     // Used for pruning branches
-    private readonly Dictionary<Snapshot, int> _snapshots = new();
+    private readonly HashSet<Snapshot> _snapshots = new();
     private int _currentMax = 0;
 
     public Day19(ILogger logger, string path) : base(logger, path) { }
@@ -37,80 +37,69 @@ public class Day19 : Puzzle
 
     public override void SolvePart1()
     {
-        //_logger.Log("33"); // For Test Data. 1 * 9 + 2 * 12 = 33
-        //return;
-
         int totalQualityLevel = 0;
-
         foreach (var blueprint in _blueprints)
             totalQualityLevel += blueprint.Id * StartCycles(24, blueprint);
-
-        _logger.Log(totalQualityLevel); // 1719
+        _logger.Log(totalQualityLevel);
     }
 
     public override void SolvePart2()
     {
-        //_logger.Log("3472"); // For Test Data: 56 * 62 = 3472
-        //return;
-
         int geodeProduct = 1;
-
         foreach (var blueprint in _blueprints.Take(3))
             geodeProduct *= StartCycles(32, blueprint);
-
-        _logger.Log(geodeProduct); // 19530
+        _logger.Log(geodeProduct);
     }
     
-    private int StartCycles(int maxMinutes, Blueprint blueprint, int elapsedMinutes = 0)
+    private int StartCycles(int minutes, Blueprint blueprint)
     {
         _currentMax = 0;
         _snapshots.Clear();
-        return RunCycles(maxMinutes, blueprint, new Material(), _startingRobots, elapsedMinutes);
+        return RunCycles(minutes, blueprint, new Material(), _startingRobots);
     }
 
-    private int RunCycles(int maxMinutes, Blueprint blueprint, Material inventory, Material robots, int elapsedMinutes = 0)
+    private int RunCycles(int minutes, Blueprint blueprint, Material inventory, Material robots)
     {
-        var mostGeodes = TotalGeodes();
-        if (mostGeodes > _currentMax) _currentMax = mostGeodes;
-        if (elapsedMinutes == maxMinutes) return inventory.Geode;
+        var geodes = TotalGeodes();
+        if (geodes > _currentMax) _currentMax = geodes;
+        if (minutes <= 1) return geodes;
 
         // Pruning. Removing branches where even the most optimistic (buying geode robot every round) won't beat current max
-        if (MaxGeodesPossible() < _currentMax) return mostGeodes;
+        if (MaxGeodesPossible() <= _currentMax) return geodes;
         // Pruning. Removing branches we've already gone down. aka eliminating "transpositions"
-        var snapshot = new Snapshot(elapsedMinutes, inventory, robots);
-        // Note to self: consider snapshots of just robots, then compare against material (nahh... we just spent stuff). compare against minutes to remove slow paths?
-        if (_snapshots.TryGetValue(snapshot, out var geodes)) return geodes;
+        var snapshot = new Snapshot(inventory, robots);
+        if (_snapshots.Contains(snapshot)) return geodes;
+        _snapshots.Add(snapshot);
 
         for (int i = 3; i >= 0; i--)
         {
             var cost = blueprint.RobotCost(i);
-            if (TryPurchaseRobot(i, blueprint, inventory, robots, out int reqdMinutes) && (elapsedMinutes + reqdMinutes) < maxMinutes)
+            if (TryPurchaseRobot(i, blueprint, inventory, robots, out int reqdMinutes) && reqdMinutes < minutes)
             {
-                var updatedInventory = inventory - cost + (reqdMinutes + 1) * robots;
+                var updatedInventory = inventory - cost + reqdMinutes * robots;
                 var updatedRobots = robots + new Material(i == 0 ? 1 : 0, i == 1 ? 1 : 0, i == 2 ? 1 : 0, i == 3 ? 1 : 0);
-                mostGeodes = Math.Max(mostGeodes, RunCycles(maxMinutes, blueprint, updatedInventory, updatedRobots, elapsedMinutes + reqdMinutes + 1));
+                geodes = Math.Max(geodes, RunCycles(minutes - reqdMinutes, blueprint, updatedInventory, updatedRobots));
             }
         }
 
-        _snapshots.Add(snapshot, mostGeodes);
-        return mostGeodes;
+        return geodes;
 
-        int TotalGeodes() => inventory.Geode + (maxMinutes - elapsedMinutes) * robots.Geode;
-        int MaxGeodesPossible() => TotalGeodes() + Utils.GetTriangleNumber(maxMinutes - elapsedMinutes - 1);
+        int TotalGeodes() => inventory.Geode + minutes * robots.Geode;
+        int MaxGeodesPossible() => TotalGeodes() + Utils.GetTriangleNumber(minutes - 1); // to save more time, this needs to be more strict but realistic too
     }
 
     private static bool TryPurchaseRobot(int materialIndex, Blueprint blueprint, Material inventory, Material robots, out int reqdMinutes)
     {
-        reqdMinutes = 0;
+        reqdMinutes = 1;
         var cost = blueprint.RobotCost(materialIndex);
         if (inventory >= cost) return true;
-
+        
         for (int i = 0; i < 4; i++)
         {
             if (cost[i] > 0)
             {
                 if (robots[i] == 0) return false; // no means of producing required material to buy this robot
-                var minutesToEarnMaterial = (int)Math.Ceiling((cost[i] - inventory[i]) / (double)robots[i]);
+                var minutesToEarnMaterial = 1 + (int)Math.Ceiling((cost[i] - inventory[i]) / (double)robots[i]);
                 reqdMinutes = Math.Max(reqdMinutes, minutesToEarnMaterial);
             }
         }
@@ -118,7 +107,7 @@ public class Day19 : Puzzle
         return true;
     }
 
-    private record struct Snapshot(int MinutesRemaining, Material Inventory, Material Robots);
+    private record struct Snapshot(Material Inventory, Material Robots);
 
     private class Blueprint
     {
@@ -164,28 +153,14 @@ public class Day19 : Puzzle
             Geode = geode;
         }
 
-        public int this[int index]
+        public int this[int index] => index switch
         {
-            get => index switch
-            {
-                0 => Ore,
-                1 => Clay,
-                2 => Obsidian,
-                3 => Geode,
-                _ => throw new IndexOutOfRangeException($"{index} is out of range"),
-            };
-            set
-            {
-                switch (index)
-                {
-                    case 0: Ore = value; break;
-                    case 1: Clay = value; break;
-                    case 2: Obsidian = value; break;
-                    case 3: Geode = value; break;
-                    default: throw new IndexOutOfRangeException($"{index} is out of range");
-                }
-            }
-        }
+            0 => Ore,
+            1 => Clay,
+            2 => Obsidian,
+            3 => Geode,
+            _ => throw new IndexOutOfRangeException($"{index} is out of range"),
+        };
 
         public static Material operator +(Material a, Material b) => new(a.Ore + b.Ore, a.Clay + b.Clay, a.Obsidian + b.Obsidian, a.Geode + b.Geode);
         public static Material operator -(Material a, Material b) => new(a.Ore - b.Ore, a.Clay - b.Clay, a.Obsidian - b.Obsidian, a.Geode - b.Geode);
