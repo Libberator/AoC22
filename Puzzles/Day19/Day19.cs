@@ -8,6 +8,9 @@ public class Day19 : Puzzle
 {
     private readonly List<Blueprint> _blueprints = new();
     private static readonly Material _startingRobots = new(1, 0, 0, 0);
+    // Used for pruning branches
+    private readonly Dictionary<Snapshot, int> _snapshots = new();
+    private int _currentMax = 0;
 
     public Day19(ILogger logger, string path) : base(logger, path) { }
 
@@ -55,13 +58,9 @@ public class Day19 : Puzzle
         foreach (var blueprint in _blueprints.Take(3))
             geodeProduct *= StartCycles(32, blueprint);
 
-        _logger.Log(geodeProduct);
+        _logger.Log(geodeProduct); // 19530
     }
-
-    // Used for pruning branches
-    private readonly Dictionary<Snapshot, int> _snapshots = new();
-    private int _currentMax = 0;
-
+    
     private int StartCycles(int maxMinutes, Blueprint blueprint, int elapsedMinutes = 0)
     {
         _currentMax = 0;
@@ -79,6 +78,7 @@ public class Day19 : Puzzle
         if (MaxGeodesPossible() < _currentMax) return mostGeodes;
         // Pruning. Removing branches we've already gone down. aka eliminating "transpositions"
         var snapshot = new Snapshot(elapsedMinutes, inventory, robots);
+        // Note to self: consider snapshots of just robots, then compare against material (nahh... we just spent stuff). compare against minutes to remove slow paths?
         if (_snapshots.TryGetValue(snapshot, out var geodes)) return geodes;
 
         for (int i = 3; i >= 0; i--)

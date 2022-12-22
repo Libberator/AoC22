@@ -37,7 +37,6 @@ public class Day21 : Puzzle
     public override void SolvePart1() => _logger.Log(_root.GetValue(_monkeys));
 
     // Uses Newton-Raphson's Root-Finding to converge to 0. 
-    // x1 = x0 - f(x0) / f'(x0)
     public override void SolvePart2()
     {
         _root.Operation = '-'; // equality (=) is just subtraction and comparing against 0
@@ -53,7 +52,7 @@ public class Day21 : Puzzle
             try { y1 = _root.GetValue(_monkeys); } // catch any divide-by-zeros, if at all possible
             catch (Exception e) { _logger.Log($"Error on {x1}: {e.Message}"); }
             var slope = (y1 - y0) / (x1 - x0);
-            (x0, x1) = (x1, x0 - y0 / slope);
+            (x0, x1) = (x1, x0 - y0 / slope); // x1 = x0 - f(x0) / f'(x0)
             y0 = y1;
         }
         _logger.Log(x0);
@@ -75,16 +74,13 @@ public class Day21 : Puzzle
             Right = right;
         }
 
-        public double GetValue(Dictionary<string, Monkey> lookup)
+        public double GetValue(Dictionary<string, Monkey> lookup) => Operation switch
         {
-            return Operation switch
-            {
-                '+' => lookup[Left].GetValue(lookup) + lookup[Right].GetValue(lookup),
-                '-' => lookup[Left].GetValue(lookup) - lookup[Right].GetValue(lookup),
-                '*' => lookup[Left].GetValue(lookup) * lookup[Right].GetValue(lookup),
-                '/' => lookup[Left].GetValue(lookup) / lookup[Right].GetValue(lookup),
-                _ => Value,
-            };
-        }
+            '+' => lookup[Left].GetValue(lookup) + lookup[Right].GetValue(lookup),
+            '-' => lookup[Left].GetValue(lookup) - lookup[Right].GetValue(lookup),
+            '*' => lookup[Left].GetValue(lookup) * lookup[Right].GetValue(lookup),
+            '/' => lookup[Left].GetValue(lookup) / lookup[Right].GetValue(lookup),
+            _ => Value,
+        };
     }
 }
