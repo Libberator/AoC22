@@ -42,14 +42,14 @@ public class Node
     {
         isValidNeighbor ??= IsValidNeighbor;
         Neighbors.Clear();
-        foreach (var dir in Vector2Int.AllDirections)
+        foreach (var dir in Vector2Int.CardinalDirections)
             if (grid.TryGetValue(Pos + dir, out var neighbor) && isValidNeighbor(this as T, neighbor)) AddNeighbor(neighbor);
     }
     public virtual void InitNeighbors<T>(Grid<T> grid, Func<T, T, bool> isValidNeighbor = null) where T : Node
     {
         isValidNeighbor ??= IsValidNeighbor;
         Neighbors.Clear();
-        foreach (var dir in Vector2Int.AllDirections)
+        foreach (var dir in Vector2Int.CardinalDirections)
             if (grid.TryGetValue(Pos + dir, out var neighbor) && isValidNeighbor(this as T, neighbor)) AddNeighbor(neighbor);
     }
     public virtual void InitNeighbors<T>(IEnumerable<T> grid, Func<T, T, bool> isValidNeighbor = null) where T : Node

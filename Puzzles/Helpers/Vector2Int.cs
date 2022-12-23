@@ -58,8 +58,29 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     public static readonly Vector2Int One = new(1, 1);
     ///<summary>A vector whose elements are equal to zero (that is, it returns the vector (0, 0)</summary>
     public static readonly Vector2Int Zero = new(0, 0);
+
+    /// <summary>Gets the vector (1,0).</summary>
+    public static readonly Vector2Int N = Up;
+    /// <summary>Gets the vector (0,1).</summary>
+    public static readonly Vector2Int E = Right;
+    /// <summary>Gets the vector (-1,0).</summary>
+    public static readonly Vector2Int S = Down;
+    /// <summary>Gets the vector (0,-1).</summary>
+    public static readonly Vector2Int W = Left;
+    /// <summary>Gets the vector (1,1).</summary>
+    public static readonly Vector2Int NE = new(1, 1);
+    /// <summary>Gets the vector (1,-1).</summary>
+    public static readonly Vector2Int SE = new(1, -1);
+    /// <summary>Gets the vector (-1,-1).</summary>
+    public static readonly Vector2Int SW = new(-1, -1);
+    /// <summary>Gets the vector (-1,1).</summary>
+    public static readonly Vector2Int NW = new(-1, 1);
     /// <summary>Returns the four cardinal directions N, E, S, W in that order.</summary>
-    public static readonly Vector2Int[] AllDirections = new Vector2Int[4] { Up, Right, Down, Left };
+    public static readonly Vector2Int[] CardinalDirections = new Vector2Int[4] { N, E, S, W };
+    /// <summary>Also called "intercardinal directions." Returns the four ordinal directions NE, SE, SW, NW in that order.</summary>
+    public static readonly Vector2Int[] OrdinalDirections = new Vector2Int[4] { NE, SE, SW, NW };
+    /// <summary>Returns all 8 points of the compass going clockwise from North around to NW.</summary>
+    public static readonly Vector2Int[] CompassPoints = new Vector2Int[8] { N, NE, E, SE, S, SW, W, NW };
 
     #endregion
 
