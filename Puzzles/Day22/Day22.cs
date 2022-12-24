@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace AoC22;
 
@@ -26,9 +28,6 @@ public class Day22 : Puzzle
         var lines = ReadAllLines();
         _map = lines[..^2];
         _instructions = Utils.NumberPattern().Split(lines[^1]);
-
-        // TODO: Consider creating a Face class with a Bounds, make 6 of them - connect their 4 edges all together, with proper adjusting for any rotations
-        //var sideLength = Utils.GreatestCommonDivisor(_map.Length, _map.Max(line => line.Length));
     }
 
     public override void SolvePart1()
@@ -51,6 +50,7 @@ public class Day22 : Puzzle
     {
         _logger.Log("5031"); // because we're not set up yet for the test case
         return;
+        InitFaceConnections();
 
         var pos = new Vector2Int(0, _map[0].IndexOf(WALKABLE));
         var dir = EAST;
@@ -232,5 +232,131 @@ public class Day22 : Puzzle
         if (dir == WEST) return 2;
         if (dir == NORTH) return 3;
         return -1;
+    }
+
+    // ---------------- TODO: Work in progress below this line. You can ignore ----------------- //
+    private void InitFaceConnections()
+    {
+        var sideLength = Utils.GreatestCommonDivisor(_map.Length, _map.Max(line => line.Length));
+        Dictionary<Vector2Int, Face> lookup = new();
+        List<Face> _faces = new();
+
+        // set up faces with their bounds
+        foreach (var pos in Vector2Int.GetAllPointsBetween(0, 5, 0, 5))
+        {
+            if (IsOutOfBounds(sideLength * pos)) continue;
+            var face = new Face(sideLength * pos.X, sideLength * (pos.X + 1) - 1, sideLength * pos.Y, sideLength * (pos.Y + 1) - 1);
+
+            _faces.Add(face);
+            lookup.Add(pos, face);
+        }
+
+        // connect faces together
+        foreach (var nodePos in lookup.Keys)
+        {
+            var face = lookup[nodePos];
+            foreach (var forward in Vector2Int.CardinalDirections) // using "local/relative" terminology for each direction
+            {
+                var searchOrigin = nodePos + forward;
+                if (FoundConnection(face, forward, searchOrigin, -forward)) continue;
+
+                var right = Vector2Int.RotatedRight(forward);
+                if (FoundConnection(face, forward, searchOrigin + right, -right)) continue;
+                if (FoundConnection(face, forward, searchOrigin - right, right)) continue;
+
+                if (FoundConnection(face, forward, searchOrigin + 2 * right, forward)) continue;
+                if (FoundConnection(face, forward, searchOrigin - 2 * right, forward)) continue;
+                if (FoundConnection(face, forward, searchOrigin + 2 * (right - forward), forward)) continue;
+                if (FoundConnection(face, forward, searchOrigin - 2 * (right + forward), forward)) continue;
+
+                if (FoundConnection(face, forward, searchOrigin - 2 * forward + 3 * right, right)) continue;
+                if (FoundConnection(face, forward, searchOrigin - 2 * forward - 3 * right, -right)) continue;
+                if (FoundConnection(face, forward, searchOrigin - 4 * forward + right, right)) continue;
+                if (FoundConnection(face, forward, searchOrigin - 4 * forward - right, -right)) continue;
+
+
+                if (FoundConnection(face, forward, searchOrigin - 4 * forward, -forward)) continue;
+
+                //var sixStepsAway = lookup.Keys.FirstOrDefault(pos => )
+                //if ()
+
+                // (5 + 1) 4. Manhattan distance of 6. searchOrigin pos - 4*neighbor direction
+
+            }
+        }
+
+        bool FoundConnection(Face source, Vector2Int edgeDir, Vector2Int neighborPos, Vector2Int neighborEdgeDir)
+        {
+            if (!lookup.TryGetValue(neighborPos, out var neighbor)) return false;
+            source.AssignNeighbor(neighbor, edgeDir);
+            neighbor.AssignNeighbor(source, neighborEdgeDir);
+            // TODO: create connection conversion data for transferring position and direction info
+            // honestly we only need a lookup that uses the bounds and the exiting travel direction to convert to a new position and direction
+            // but that's a lot of info to try to simplify.
+            return true;
+        }
+    }
+
+
+
+    private static readonly Vector2Int[] _degree0 = new Vector2Int[]
+    {
+        Vector2Int.Zero,
+                    new (-2, 4), new (0, 4), new (2, 4),
+        new (-4, 2),                                    new (4, 2),
+        new (-4, 0),              /*Zero*/              new (4, 0),
+        new (-4,-2),                                    new (4, -2),
+                    new (-2,-4), new (0,-4), new(2,-4),
+    };
+
+    private static readonly Vector2Int[] _degree1 = Vector2Int.CardinalDirections;
+
+    private static readonly Vector2Int[] _degree2 = new Vector2Int[]
+    {
+        new (-2, 2), new (0, 2), new (2, 2),
+        new (-2, 0),             new (2, 0),
+        new (-2,-2), new (0,-2), new (2,-2),
+    };
+
+    private static readonly Vector2Int[] _degree3 = new Vector2Int[]
+    {
+                    new (-1, 4), new (1, 4),
+        new (-4, 1),                        new (4, 1),
+        new (-4,-1),                        new (4,-1),
+                    new (-1,-4), new (1,-4)
+    };
+
+
+    private class Face
+    {
+        public Bounds Boundary;
+        private Bounds _northEdge, _eastEdge, _southEdge, _westEdge;
+
+        // connected neighbors
+        public Face North { get; private set; }
+        public Face East { get; private set; }
+        public Face South { get; private set; }
+        public Face West { get; private set; }
+
+        public Face(int xMin, int xMax, int yMin, int yMax)
+        {
+            Boundary = new Bounds(xMin, xMax, yMin, yMax);
+            _northEdge = new Bounds(xMin, xMin, yMin, yMax);
+            _eastEdge = new Bounds(xMin, xMax, yMax, yMax);
+            _southEdge = new Bounds(xMax, xMax, yMin, yMax);
+            _westEdge = new Bounds(xMin, xMax, yMin, yMin);
+        }
+
+        public void AssignNeighbor(Face neighbor, Vector2Int edgeDir)
+        {
+            if (edgeDir == Vector2Int.N) North = neighbor;
+            else if (edgeDir == Vector2Int.E) East = neighbor;
+            else if (edgeDir == Vector2Int.S) South = neighbor;
+            else if (edgeDir == Vector2Int.W) West = neighbor;
+        }
+
+
+        // create and assign connected neighbors
+        // northFace, eastFace, southFace, westFace
     }
 }

@@ -97,7 +97,7 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     /// <summary>Restricts this vector between minimum and maximum values.</summary>
     public void Clamp(int minX, int maxX, int minY, int maxY) { X = Math.Clamp(X, minX, maxX); Y = Math.Clamp(Y, minY, maxY); }
     /// <summary>Restricts this vector between minimum and maximum values.</summary>
-    public  void Clamp(Vector2Int min, Vector2Int max) => Clamp(min.X, max.X, min.Y, max.Y);
+    public void Clamp(Vector2Int min, Vector2Int max) => Clamp(min.X, max.X, min.Y, max.Y);
     /// <summary>Computes the Euclidian distance between <paramref name="other"/> and this vector.</summary>
     public readonly double DistanceEuclidianTo(Vector2Int other) => Math.Sqrt(DistanceSquaredTo(other));
     /// <summary>Computes the Chebyshev distance, also known as chessboard distance - the amount of moves a king would take to get from a to b.</summary>
@@ -143,7 +143,7 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     /// <summary>Subtracts <paramref name="value"/> from both parts of this vector.</summary>
     public void Subtract(int value) => Subtract(value, value);
     /// <summary>Subtracts a vector from this vector.</summary>
-    public void Subtract(Vector2Int other) => Subtract(other.X, other.Y); 
+    public void Subtract(Vector2Int other) => Subtract(other.X, other.Y);
 
     #endregion
 
@@ -219,6 +219,10 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     public static Vector2Int Max(Vector2Int a, Vector2Int b) => new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
     /// <summary>Returns a vector whose elements are the minimum of each of the pairs of elements in two specified vectors.</summary>
     public static Vector2Int Min(Vector2Int a, Vector2Int b) => new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
+    /// <summary>Returns a vector that is the rotated clockwise 90° verion of <paramref name="other"/>.</summary>
+    public static Vector2Int RotatedRight(Vector2Int other) => new(other.Y, -other.X);
+    /// <summary>Returns a vector that is the rotated counter-clockwise 90° verion of <paramref name="other"/>.</summary>
+    public static Vector2Int RotatedLeft(Vector2Int other) => new(-other.Y, other.X);
 
     #endregion
 
