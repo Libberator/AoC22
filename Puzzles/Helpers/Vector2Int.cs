@@ -59,13 +59,13 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     ///<summary>A vector whose elements are equal to zero (that is, it returns the vector (0, 0)</summary>
     public static readonly Vector2Int Zero = new(0, 0);
 
-    /// <summary>Gets the vector (1,0).</summary>
-    public static readonly Vector2Int N = Up;
     /// <summary>Gets the vector (0,1).</summary>
+    public static readonly Vector2Int N = Up;
+    /// <summary>Gets the vector (1,0).</summary>
     public static readonly Vector2Int E = Right;
-    /// <summary>Gets the vector (-1,0).</summary>
-    public static readonly Vector2Int S = Down;
     /// <summary>Gets the vector (0,-1).</summary>
+    public static readonly Vector2Int S = Down;
+    /// <summary>Gets the vector (-1,0).</summary>
     public static readonly Vector2Int W = Left;
     /// <summary>Gets the vector (1,1).</summary>
     public static readonly Vector2Int NE = new(1, 1);

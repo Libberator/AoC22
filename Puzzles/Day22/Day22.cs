@@ -48,8 +48,8 @@ public class Day22 : Puzzle
 
     public override void SolvePart2()
     {
-        _logger.Log("5031"); // because we're not set up yet for the test case
-        return;
+        _logger.Log("5031"); return; // because we're not set up yet for the test case
+        
         InitFaceConnections();
 
         var pos = new Vector2Int(0, _map[0].IndexOf(WALKABLE));
@@ -257,31 +257,38 @@ public class Day22 : Puzzle
             var face = lookup[nodePos];
             foreach (var forward in Vector2Int.CardinalDirections) // using "local/relative" terminology for each direction
             {
+                // no turns/folds required
                 var searchOrigin = nodePos + forward;
                 if (FoundConnection(face, forward, searchOrigin, -forward)) continue;
 
+                // 1 turn
                 var right = Vector2Int.RotatedRight(forward);
                 if (FoundConnection(face, forward, searchOrigin + right, -right)) continue;
                 if (FoundConnection(face, forward, searchOrigin - right, right)) continue;
 
+                // Note: this won't work. One configuration requires (1,-4) to be checked before (2,-4),
+                // but another requires the opposite. Will need to reconsider the algorithm for connecting faces to fit all 11 cube nets
+
+                // 4 turns
+                if (FoundConnection(face, forward, searchOrigin - 4 * forward, -forward)) continue;
+                if (FoundConnection(face, forward, searchOrigin + 2 * right - 4 * forward, -forward)) continue;
+                if (FoundConnection(face, forward, searchOrigin - 2 * right - 4 * forward, -forward)) continue;
+                if (FoundConnection(face, forward, searchOrigin + 4 * right - 2 * forward, -forward)) continue;
+                if (FoundConnection(face, forward, searchOrigin - 4 * right - 2 * forward, -forward)) continue;
+
+                // 2 turns
                 if (FoundConnection(face, forward, searchOrigin + 2 * right, forward)) continue;
                 if (FoundConnection(face, forward, searchOrigin - 2 * right, forward)) continue;
                 if (FoundConnection(face, forward, searchOrigin + 2 * (right - forward), forward)) continue;
                 if (FoundConnection(face, forward, searchOrigin - 2 * (right + forward), forward)) continue;
 
+                // 3 turns
+                if (FoundConnection(face, forward, searchOrigin + 3 * right, right)) continue;
+                if (FoundConnection(face, forward, searchOrigin - 3 * right, -right)) continue;
                 if (FoundConnection(face, forward, searchOrigin - 2 * forward + 3 * right, right)) continue;
                 if (FoundConnection(face, forward, searchOrigin - 2 * forward - 3 * right, -right)) continue;
                 if (FoundConnection(face, forward, searchOrigin - 4 * forward + right, right)) continue;
                 if (FoundConnection(face, forward, searchOrigin - 4 * forward - right, -right)) continue;
-
-
-                if (FoundConnection(face, forward, searchOrigin - 4 * forward, -forward)) continue;
-
-                //var sixStepsAway = lookup.Keys.FirstOrDefault(pos => )
-                //if ()
-
-                // (5 + 1) 4. Manhattan distance of 6. searchOrigin pos - 4*neighbor direction
-
             }
         }
 
@@ -291,41 +298,9 @@ public class Day22 : Puzzle
             source.AssignNeighbor(neighbor, edgeDir);
             neighbor.AssignNeighbor(source, neighborEdgeDir);
             // TODO: create connection conversion data for transferring position and direction info
-            // honestly we only need a lookup that uses the bounds and the exiting travel direction to convert to a new position and direction
-            // but that's a lot of info to try to simplify.
             return true;
         }
     }
-
-
-
-    private static readonly Vector2Int[] _degree0 = new Vector2Int[]
-    {
-        Vector2Int.Zero,
-                    new (-2, 4), new (0, 4), new (2, 4),
-        new (-4, 2),                                    new (4, 2),
-        new (-4, 0),              /*Zero*/              new (4, 0),
-        new (-4,-2),                                    new (4, -2),
-                    new (-2,-4), new (0,-4), new(2,-4),
-    };
-
-    private static readonly Vector2Int[] _degree1 = Vector2Int.CardinalDirections;
-
-    private static readonly Vector2Int[] _degree2 = new Vector2Int[]
-    {
-        new (-2, 2), new (0, 2), new (2, 2),
-        new (-2, 0),             new (2, 0),
-        new (-2,-2), new (0,-2), new (2,-2),
-    };
-
-    private static readonly Vector2Int[] _degree3 = new Vector2Int[]
-    {
-                    new (-1, 4), new (1, 4),
-        new (-4, 1),                        new (4, 1),
-        new (-4,-1),                        new (4,-1),
-                    new (-1,-4), new (1,-4)
-    };
-
 
     private class Face
     {
@@ -355,8 +330,7 @@ public class Day22 : Puzzle
             else if (edgeDir == Vector2Int.W) West = neighbor;
         }
 
-
         // create and assign connected neighbors
-        // northFace, eastFace, southFace, westFace
+        // consider a connection class that handles the transfer between two edges
     }
 }

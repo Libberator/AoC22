@@ -42,37 +42,36 @@ public class Day24 : Puzzle
         static void AddToOrCreate(Dictionary<int, List<int>> target, int key, int value)
         {
             if (target.TryGetValue(key, out var list)) list.Add(value);
-            else target[key] = new List<int>() { value };
+            else target.Add(key, new List<int>() { value });
         }
     }
 
-    public override void SolvePart1() // 14 seconds
+    public override void SolvePart1() // 14.9 seconds A* (46.7s floodfill)
     {
-        _minutesTraveled = FindShortestPath(_start, _end);
+        _minutesTraveled = FindQuickestPath(_start, _end);
         _logger.Log(_minutesTraveled); // 332
     }
 
-    public override void SolvePart2() // 20 seconds
+    public override void SolvePart2() // 20 seconds A* (92s floodfill)
     {
-        _minutesTraveled = FindShortestPath(_end, _start, _minutesTraveled);
-        _minutesTraveled = FindShortestPath(_start, _end, _minutesTraveled);
-
+        _minutesTraveled = FindQuickestPath(_end, _start, _minutesTraveled);
+        _minutesTraveled = FindQuickestPath(_start, _end, _minutesTraveled);
         _logger.Log(_minutesTraveled); // 942
     }
 
-    private int FindShortestPath(Vector2Int start, Vector2Int end, int startingMinutes = 0)
+    private int FindQuickestPath(Vector2Int start, Vector2Int end, int startingMinutes = 0)
     {
-        List<(int Minute, Vector2Int Pos, int F)> toSearch = new() { (startingMinutes, start, 0) };
-        List<(int Minute, Vector2Int Pos, int F)> processed = new();
+        List<(int Minute, Vector2Int Pos, int Cost)> toSearch = new() { (startingMinutes, start, 0) };
+        List<(int, Vector2Int, int)> processed = new();
 
         while (toSearch.Count > 0)
         {
-            var current = toSearch[0];
+            var current = toSearch[0]; // Min;
             foreach (var next in toSearch) // TODO: try to limit the amount of items we iterate through
-                if (next.F < current.F || (next.F == current.F && next.Minute < current.Minute))
+                if (next.Cost < current.Cost || (next.Cost == current.Cost && next.Minute < current.Minute))
                     current = next;
 
-            toSearch.Remove(current);
+            toSearch.Remove(current); //RemoveAt(0);
             processed.Add(current);
 
             var nextMinute = current.Minute + 1;
@@ -82,6 +81,7 @@ public class Day24 : Puzzle
             {
                 var nextPos = pos + dir;
                 if (nextPos == end) return nextMinute;
+
                 if (!_boundary.Contains(nextPos)) continue;
                 var dist = nextPos.DistanceManhattanTo(end);
                 var nextMove = (nextMinute, nextPos, nextMinute + dist);
@@ -90,26 +90,27 @@ public class Day24 : Puzzle
                 toSearch.Add(nextMove);
             }
 
-            var stayStill = (nextMinute, pos, current.F + 1);
+            var stayStill = (nextMinute, pos, current.Cost + 1);
             if (!processed.Contains(stayStill) && !toSearch.Contains(stayStill) && IsValidMovePosition(pos, nextMinute))
                 toSearch.Add(stayStill);
         }
         return 0;
     }
 
-    private bool IsValidMovePosition(Vector2Int pos, int nextMinute)
+    // TODO: consider caching these results into a lookup for quicker checks
+    private bool IsValidMovePosition(Vector2Int pos, int minute)
     {
         if (_upCol2RowIndices.TryGetValue(pos.Y, out var rowIndicesUp) &&
-            rowIndicesUp.Contains((pos.X + nextMinute).Mod(_boundary.Width + 1))) return false;
+            rowIndicesUp.Contains((pos.X + minute).Mod(_boundary.Width + 1))) return false;
 
         if (_downCol2RowIndices.TryGetValue(pos.Y, out var rowIndicesDown) &&
-            rowIndicesDown.Contains((pos.X - nextMinute).Mod(_boundary.Width + 1))) return false;
+            rowIndicesDown.Contains((pos.X - minute).Mod(_boundary.Width + 1))) return false;
 
         if (_leftRow2ColIndices.TryGetValue(pos.X, out var colIndicesLeft) &&
-            colIndicesLeft.Contains((pos.Y + nextMinute).Mod(_boundary.Height + 1))) return false;
+            colIndicesLeft.Contains((pos.Y + minute).Mod(_boundary.Height + 1))) return false;
 
         if (_rightRow2ColIndices.TryGetValue(pos.X, out var colIndicesRight) &&
-            colIndicesRight.Contains((pos.Y - nextMinute).Mod(_boundary.Height + 1))) return false;
+            colIndicesRight.Contains((pos.Y - minute).Mod(_boundary.Height + 1))) return false;
 
         return true;
     }
