@@ -40,11 +40,11 @@ public partial class Day18 : Puzzle
         var bounds = new Bounds3D(_bounds);
         bounds.Expand(1);
         int totalSurfaceArea = 0;
-        SurfaceAreaFloodFill(bounds, ref totalSurfaceArea);
+        VolumetricFloodFill(bounds, ref totalSurfaceArea); // parallel?
         _logger.Log(totalSurfaceArea);
     }
 
-    private void SurfaceAreaFloodFill(Bounds3D bounds, ref int totalSurfaceArea)
+    private void VolumetricFloodFill(Bounds3D bounds, ref int totalSurfaceArea)
     {
         var toSearch = new List<Vector3Int>() { bounds.Min };
         var processed = new List<Vector3Int>();
@@ -66,8 +66,7 @@ public partial class Day18 : Puzzle
                     totalSurfaceArea++;
                     continue;
                 }
-                if (processed.Contains(pos)) continue;
-                if (!toSearch.Contains(pos))
+                if (!processed.Contains(pos) && !toSearch.Contains(pos))
                     toSearch.Add(pos);
             }
         }

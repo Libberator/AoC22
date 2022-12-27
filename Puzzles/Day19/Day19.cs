@@ -37,9 +37,6 @@ public class Day19 : Puzzle
 
     public override void SolvePart1()
     {
-        _logger.Log(33);
-        return;
-
         int totalQualityLevel = 0;
         foreach (var blueprint in _blueprints)
             totalQualityLevel += blueprint.Id * StartCycles(24, blueprint);
@@ -48,9 +45,6 @@ public class Day19 : Puzzle
 
     public override void SolvePart2()
     {
-        _logger.Log(3472);
-        return;
-
         int geodeProduct = 1;
         foreach (var blueprint in _blueprints.Take(3))
             geodeProduct *= StartCycles(32, blueprint);
@@ -91,7 +85,7 @@ public class Day19 : Puzzle
         return geodes;
 
         int TotalGeodes() => inventory.Geode + minutes * robots.Geode;
-        int MaxGeodesPossible() => TotalGeodes() + Utils.GetTriangleNumber(minutes - 1); // to save more time, this needs to be more strict but realistic too
+        int MaxGeodesPossible() => TotalGeodes() + Utils.GetTriangleNumber(minutes - 1);
     }
 
     private static bool TryPurchaseRobot(int materialIndex, Blueprint blueprint, Material inventory, Material robots, out int reqdMinutes)
