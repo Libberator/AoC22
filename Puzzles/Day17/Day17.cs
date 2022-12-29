@@ -28,7 +28,7 @@ public class Day17 : Puzzle
 
     public override void SolvePart2()
     {
-#if !USE_TEST
+#if !DEBUG || !USE_TEST
         if (!_patternFound)
         {
             var i = 2022;

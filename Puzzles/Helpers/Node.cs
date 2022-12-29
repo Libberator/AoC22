@@ -62,6 +62,8 @@ public class Node
     public void AddNeighbor<T>(T neighbor) where T : Node => Neighbors.Add(neighbor);
     public void RemoveNeighbors<T>(IEnumerable<T> neighbors) where T : Node => Neighbors.RemoveAll(n => neighbors.Contains(n));
     public void RemoveNeighbor<T>(T neighbor) where T : Node => Neighbors.Remove(neighbor);
+
+    public override int GetHashCode() => Pos.GetHashCode();
 }
 
 public class Node<T> : Node
@@ -79,7 +81,7 @@ public static class Pathfinding
     public static List<T> FindPath<T>(T start, T end) where T : Node
     {
         var toSearch = new List<Node>() { start };
-        var processed = new List<Node>();
+        HashSet<Node> processed = new();
 
         while (toSearch.Count > 0)
         {
@@ -140,7 +142,7 @@ public static class Pathfinding
     public static List<T> FloodFillUntil<T>(T start, Predicate<T> targetCondition) where T : Node
     {
         var toSearch = new List<T>() { start };
-        var processed = new List<T>();
+        HashSet<T> processed = new();
 
         while (toSearch.Count > 0)
         {

@@ -62,7 +62,7 @@ public class Day24 : Puzzle
     private int FindQuickestPath(Vector2Int start, Vector2Int end, int startingMinutes = 0)
     {
         List<(int Minute, Vector2Int Pos, int Cost)> toSearch = new() { (startingMinutes, start, 0) };
-        List<(int, Vector2Int, int)> processed = new();
+        HashSet<(int, Vector2Int, int)> processed = new();
 
         while (toSearch.Count > 0)
         {
@@ -85,13 +85,13 @@ public class Day24 : Puzzle
                 if (!_boundary.Contains(nextPos)) continue;
                 var dist = nextPos.DistanceManhattanTo(end);
                 var nextMove = (nextMinute, nextPos, nextMinute + dist);
-                if (processed.Contains(nextMove) || toSearch.Contains(nextMove)) continue;
                 if (!IsValidMovePosition(nextPos, nextMinute)) continue;
+                if (toSearch.Contains(nextMove) || processed.Contains(nextMove)) continue;
                 toSearch.Add(nextMove);
             }
 
             var stayStill = (nextMinute, pos, current.Cost + 1);
-            if (!processed.Contains(stayStill) && !toSearch.Contains(stayStill) && IsValidMovePosition(pos, nextMinute))
+            if (IsValidMovePosition(pos, nextMinute) && !toSearch.Contains(stayStill) && !processed.Contains(stayStill))
                 toSearch.Add(stayStill);
         }
         return 0;
@@ -121,13 +121,7 @@ public class Day24 : Puzzle
         for (int row = _boundary.XMin; row <= _boundary.XMax; row++)
         {
             for (int col = _boundary.YMin; col <= _boundary.YMax; col++)
-            {
-                var pos = new Vector2Int(row, col);
-                if (IsValidMovePosition(pos, minute))
-                    sb.Append('.');
-                else
-                    sb.Append('X');
-            }
+                sb.Append(IsValidMovePosition(new(row, col), minute) ? '.' : 'X');
             sb.AppendLine();
         }
         _logger.Log(sb.ToString());

@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace AoC22;
 
 public class Day12 : Puzzle
 {
     private Grid<Node<char>> _grid;
-    private readonly List<Node<char>> _lowPoints = new();
     private Node<char> _startPoint;
     private Node<char> _endPoint;
 
@@ -23,7 +21,6 @@ public class Day12 : Puzzle
         {
             for (int col = 0; col < cols; col++)
             {
-                var pos = new Vector2Int(row, col);
                 var c = data[row][col];
                 var height = c switch
                 {
@@ -32,10 +29,10 @@ public class Day12 : Puzzle
                     _ => c
                 };
 
+                var pos = new Vector2Int(row, col);
                 var point = new Node<char>(height, pos);
 
                 _grid.Add(row, col, point);
-                if (height == 'a') _lowPoints.Add(point);
                 if (c == 'S') _startPoint = point;
                 else if (c == 'E') _endPoint = point;
             }

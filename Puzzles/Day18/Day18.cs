@@ -47,7 +47,7 @@ public partial class Day18 : Puzzle
     private void VolumetricFloodFill(Bounds3D bounds, ref int totalSurfaceArea)
     {
         var toSearch = new List<Vector3Int>() { bounds.Min };
-        var processed = new List<Vector3Int>();
+        HashSet<Vector3Int> processed = new();
 
         while (toSearch.Count > 0)
         {
