@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace AoC22;
@@ -17,27 +18,32 @@ public partial class Day7 : Puzzle
     public override void Setup()
     {
         Folder cwd = _root; // current working directory
+        
+        var cdPattern = ChangeDirectoryPattern();
+        var filePattern = FilePattern();
+        var folderPattern = FolderPattern();
+
         foreach (var line in ReadFromFile().Skip(1))
         {
             if (line == LIST_FILES) continue;
 
-            var cdMatch = ChangeDirectoryPattern().Match(line);
+            var cdMatch = cdPattern.Match(line);
             if (cdMatch.Success)
             {
                 var nextFolder = cdMatch.Groups[1].Value;
-                if (nextFolder == UP_ONE_FOLDER) cwd = cwd.Parent!;
+                if (nextFolder == UP_ONE_FOLDER) cwd = cwd.Parent;
                 else cwd = cwd.SubFolders.First(f => f.Name == nextFolder);
                 continue;
             }
 
-            var fileMatch = FilePattern().Match(line);
+            var fileMatch = filePattern.Match(line);
             if (fileMatch.Success)
             {
                 cwd.AddFile(new(fileMatch.Groups[2].Value, int.Parse(fileMatch.Groups[1].ValueSpan)));
                 continue;
             }
 
-            var folderMatch = FolderPattern().Match(line);
+            var folderMatch = folderPattern.Match(line);
             if (folderMatch.Success)
             {
                 var folderName = folderMatch.Groups[1].Value;
@@ -56,26 +62,6 @@ public partial class Day7 : Puzzle
         var amountOver = _root.Size - 40_000_000;
         var amountToDelete = _allFolders.Where(f => f.Size >= amountOver).Min(f => f.Size);
         _logger.Log(amountToDelete);
-    }
-
-    // Bonus: prints out the filesystem visually
-    public void PrettyPrint()
-    {
-        int depth = 0;
-        _logger.Log("");
-        Recurse(_root, ref depth);
-        _logger.Log("");
-
-        void Recurse(Folder dir, ref int depth)
-        {
-            _logger.Log($"{" ".Repeat(depth)}- {dir.Name} (dir)");
-            depth++;
-            foreach (var subFolder in dir.SubFolders)
-                Recurse(subFolder, ref depth);
-            foreach (var file in dir.Files)
-                _logger.Log($"{" ".Repeat(depth)}- {file.Name} (file, size={file.Size})");
-            depth--;
-        }
     }
 
     public record File(string Name, int Size);
@@ -102,7 +88,8 @@ public partial class Day7 : Puzzle
 
         public void AddFile(File newFile)
         {
-            if (Files.Add(newFile)) _totalFileSize += newFile.Size;
+            Files.Add(newFile);
+            _totalFileSize += newFile.Size;
         }
 
         private int GetSize()
@@ -116,9 +103,29 @@ public partial class Day7 : Puzzle
         }
     }
 
-    [GeneratedRegex("\\$ cd (.+)")]
+    // Bonus: prints out the filesystem visually
+    public void PrettyPrint()
+    {
+        int depth = 0;
+        var sb = new StringBuilder();
+        Recurse(_root, ref depth);
+
+        void Recurse(Folder dir, ref int depth)
+        {
+            sb.AppendLine($"{" ".Repeat(depth)}- {dir.Name} (dir)");
+            depth++;
+            foreach (var subFolder in dir.SubFolders)
+                Recurse(subFolder, ref depth);
+            foreach (var file in dir.Files)
+                sb.AppendLine($"{" ".Repeat(depth)}- {file.Name} (file, size={file.Size})");
+            depth--;
+        }
+        _logger.Log(sb.ToString());
+    }
+
+    [GeneratedRegex(@"\$ cd (.+)")]
     private static partial Regex ChangeDirectoryPattern();
-    [GeneratedRegex("(\\d+) (.+)")]
+    [GeneratedRegex(@"(\d+) (.+)")]
     private static partial Regex FilePattern();
     [GeneratedRegex("dir (.+)")]
     private static partial Regex FolderPattern();
