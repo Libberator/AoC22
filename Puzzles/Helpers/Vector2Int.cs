@@ -207,14 +207,22 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
         var y = (-slope1 * pt1.X + pt1.Y - slope2 * pt2.X + pt2.Y) / 2;
         return new Vector2Int(x, y);
     }
+    /// <summary>Returns a float as the percentage that <paramref name="value"/> is between two vectors.</summary>
+    public static float InverseLerp(Vector2Int from, Vector2Int to, Vector2Int value)
+    {
+        if (from.X != to.X) return (float)(value.X - from.X) / (to.X - from.X);
+        if (from.Y != to.Y) return (float)(value.Y - from.Y) / (to.Y - from.Y);
+        return 0f;
+    }
     /// <summary>Performs a linear interpolation between two vectors based on the given weighting (0f to 1f).</summary>
     public static Vector2Int Lerp(Vector2Int from, Vector2Int to, float weight)
     {
-        weight = Math.Clamp(weight, 0f, 1f);
         var x = (int)Math.Round(from.X + (to.X - from.X) * weight);
         var y = (int)Math.Round(from.Y + (to.Y - from.Y) * weight);
         return new(x, y);
     }
+    /// <summary>Re-maps a vector from one range to another.</summary>
+    public static Vector2Int Map(Vector2Int fromMin, Vector2Int fromMax, Vector2Int toMin, Vector2Int toMax, Vector2Int value) => Lerp(toMin, toMax, InverseLerp(fromMin, fromMax, value));
     /// <summary>Returns a vector whose elements are the maximum of each of the pairs of elements in two specified vectors.</summary>
     public static Vector2Int Max(Vector2Int a, Vector2Int b) => new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
     /// <summary>Returns a vector whose elements are the minimum of each of the pairs of elements in two specified vectors.</summary>

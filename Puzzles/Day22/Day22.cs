@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -8,18 +9,14 @@ public class Day22 : Puzzle
 {
     private string[] _map;
     private string[] _instructions;
+    private Vector2Int _startPosition;
+    private readonly Dictionary<Vector2Int, List<Edge>> _edgeConnections = new() { { NORTH, new() }, { EAST, new() }, { SOUTH, new() }, { WEST, new() } };
 
     // compass is rotated 90 degrees so that x-values move along rows and y-values move along columns in a string[]
-    private static readonly Vector2Int NORTH = new(-1, 0);
-    private static readonly Vector2Int EAST = new(0, 1);
-    private static readonly Vector2Int SOUTH = new(1, 0);
-    private static readonly Vector2Int WEST = new(0, -1);
+    private static readonly Vector2Int NORTH = new(-1, 0), EAST = new(0, 1), SOUTH = new(1, 0), WEST = new(0, -1);
 
-    private const string LEFT = "L";
-    private const string RIGHT = "R";
-    private const char SPACE = ' ';
-    private const char WALKABLE = '.';
-    private const char WALL = '#';
+    private const string LEFT = "L", RIGHT = "R";
+    private const char SPACE = ' ', WALKABLE = '.', WALL = '#';
 
     public Day22(ILogger logger, string path) : base(logger, path) { }
 
@@ -28,11 +25,12 @@ public class Day22 : Puzzle
         var lines = ReadAllLines();
         _map = lines[..^2];
         _instructions = Utils.NumberPattern().Split(lines[^1]);
+        _startPosition = new Vector2Int(0, _map[0].IndexOf(WALKABLE));
     }
 
     public override void SolvePart1()
     {
-        var pos = new Vector2Int(0, _map[0].IndexOf(WALKABLE));
+        var pos = _startPosition;
         var dir = EAST;
 
         foreach (var instruction in _instructions)
@@ -43,16 +41,13 @@ public class Day22 : Puzzle
         }
 
         var password = GetPassword(pos, dir);
-        _logger.Log(password); // 117054
+        _logger.Log(password);
     }
 
     public override void SolvePart2()
     {
-        _logger.Log("5031"); return; // because we're not set up yet for the test case
-        
-        InitFaceConnections();
-
-        var pos = new Vector2Int(0, _map[0].IndexOf(WALKABLE));
+        InitEdgeConnections();
+        var pos = _startPosition;
         var dir = EAST;
 
         foreach (var instruction in _instructions)
@@ -63,9 +58,9 @@ public class Day22 : Puzzle
         }
 
         var password = GetPassword(pos, dir);
-        _logger.Log(password); // 162096
+        _logger.Log(password);
     }
-
+    
     private void TakeSteps(ref Vector2Int pos, Vector2Int dir, int amount)
     {
         for (int i = 0; i < amount; i++)
@@ -90,247 +85,174 @@ public class Day22 : Puzzle
         }
     }
 
-    // TODO: rework this so it's not hard-coded and will work with the sample data or other people's input too
     private void TakeSteps3D(ref Vector2Int pos, ref Vector2Int dir, int amount)
     {
         for (int i = 0; i < amount; i++)
         {
-            var (Pos, Dir) = NextMove(pos, dir);
-            if (_map[Pos.X][Pos.Y] == WALL) break;
-            pos = Pos;
-            dir = Dir;
+            var (NextPos, NextDir) = NextMove(pos, dir);
+            if (_map[NextPos.X][NextPos.Y] == WALL) break;
+            pos = NextPos;
+            dir = NextDir;
         }
 
-        (Vector2Int Pos, Vector2Int Dir) NextMove(Vector2Int pos, Vector2Int dir)
+        (Vector2Int NextPos, Vector2Int NextDir) NextMove(Vector2Int pos, Vector2Int dir)
         {
-            pos += dir;
-            if (IsOutOfBounds(pos))
+            var nextPos = pos + dir;
+            if (IsOutOfBounds(nextPos))
             {
-                if (pos.X < 0) // off the top edge
+                foreach (var edge in _edgeConnections[dir])
                 {
-                    if (pos.Y >= 50 && pos.Y < 100)
+                    if (edge.Contains(pos))
                     {
-                        pos.X = 100 + pos.Y; // y of 50 -> x of 150, y of 99 -> x of 199
-                        pos.Y = 0;
-                        dir.RotateRight();
-                    }
-                    else if (pos.Y >= 100 && pos.Y < 150)
-                    {
-                        pos.X = 199;
-                        pos.Y -= 100;
-                    }
-                }
-                else if (pos.Y < 0) // off the left edge
-                {
-                    if (pos.X >= 100 && pos.X < 150)
-                    {
-                        pos.X = 149 - pos.X; // 100 -> 49 and 149 -> 0
-                        pos.Y = 50;
-                        dir.Negate();
-                    }
-                    else if (pos.X >= 150 && pos.X < 200)
-                    {
-                        pos.Y = pos.X - 100;
-                        pos.X = 0;
-                        dir.RotateLeft();
-                    }
-                }
-                else if (pos.X >= _map.Length) // off the bottom edge
-                {
-                    pos.X = 0;
-                    pos.Y += 100;
-                }
-                else if (pos.X >= 0 && pos.X < 50)
-                {
-                    if (pos.Y < 50) // off the left void near the top
-                    {
-                        pos.X = 149 - pos.X; // 0 -> 149, 49 -> 100
-                        pos.Y = 0;
-                        dir.Negate();
-                    }
-                    else if (pos.Y >= 150) // off the right-edge near the top
-                    {
-                        pos.X = 149 - pos.X; // 0 -> 149 and 49 -> 100
-                        pos.Y = 99;
-                        dir.Negate();
-                    }
-                }
-                else if (pos.X >= 50 && pos.X < 100)
-                {
-                    if (pos.Y < 50)
-                    {
-                        if (dir == WEST) // left into the center left void
-                        {
-                            pos.Y = pos.X - 50; // x of 50 -> y of 0, x of 99 -> y of 49
-                            pos.X = 100;
-                            dir.RotateLeft();
-                        }
-                        else if (pos.X == 99 && dir == NORTH) // up into the center left void
-                        {
-                            pos.X = pos.Y + 50; // y of 0 -> x of 50, y of 49 -> x of 99
-                            pos.Y = 50;
-                            dir.RotateRight();
-                        }
-                    }
-                    else if (pos.Y >= 100)
-                    {
-                        if (dir == EAST) // right into the center right void
-                        {
-                            pos.Y = pos.X + 50; // x of 50 -> y of 100, x of 99 -> y of 149
-                            pos.X = 49;
-                            dir.RotateLeft();
-                        }
-                        else if (pos.X == 50 && dir == SOUTH) // down into the center right void
-                        {
-                            pos.X = pos.Y - 50; // y of 100 -> x of 50, y of 149 -> x of 99
-                            pos.Y = 99;
-                            dir.RotateRight();
-                        }
-                    }
-                }
-                else if (pos.X >= 100 && pos.X < 150) // right into void connect to top-right
-                {
-                    pos.X = 149 - pos.X; // x of 100 -> x of 49, x of 149 -> x of 0
-                    pos.Y = 149;
-                    dir.Negate();
-                }
-                else if (pos.X >= 150 && pos.X < 200)
-                {
-                    if (dir == EAST) // right into bottom-center void
-                    {
-                        pos.Y = pos.X - 100; // x of 150 -> y of 50, x of 199 -> y of 99
-                        pos.X = 149;
-                        dir.RotateLeft();
-                    }
-                    else if (dir == SOUTH) // down into bottom-center void
-                    {
-                        pos.X = pos.Y + 100; // y of 50 -> x of 150, y of 149 -> x of 199
-                        pos.Y = 49;
-                        dir.RotateRight();
+                        nextPos = edge.GetNextPosition(pos);
+                        dir = edge.NextDirection;
+                        break;
                     }
                 }
             }
-
-            return (pos, dir);
+            return (nextPos, dir);
         }
     }
 
-    private bool IsOutOfBounds(Vector2Int next)
+    private bool IsOutOfBounds(Vector2Int pos)
     {
-        if (next.X < 0 || next.X >= _map.Length) return true;
-        if (next.Y < 0 || next.Y >= _map[next.X].Length) return true;
-        if (_map[next.X][next.Y] == SPACE) return true;
+        if (pos.X < 0 || pos.X >= _map.Length) return true;
+        if (pos.Y < 0 || pos.Y >= _map[pos.X].Length) return true;
+        if (_map[pos.X][pos.Y] == SPACE) return true;
         return false;
     }
 
     private static int GetPassword(Vector2Int pos, Vector2Int dir) => 1000 * (pos.X + 1) + 4 * (pos.Y + 1) + DirectionValue(dir);
 
-    private static int DirectionValue(Vector2Int dir)
+    private static int DirectionValue(Vector2Int dir) => dir switch
     {
-        if (dir == EAST) return 0;
-        if (dir == SOUTH) return 1;
-        if (dir == WEST) return 2;
-        if (dir == NORTH) return 3;
-        return -1;
-    }
+        { X:-1, Y: 0 } => 3, // NORTH
+        { X: 0, Y:-1 } => 2, // WEST
+        { X: 1, Y: 0 } => 1, // SOUTH
+        { X: 0, Y: 1 } => 0, // EAST
+        _ => -1,
+    };
 
-    // ---------------- TODO: Work in progress below this line. You can ignore ----------------- //
-    private void InitFaceConnections()
+    #region Connecting Edges For a Cube Net
+
+    private void InitEdgeConnections()
     {
         var sideLength = Utils.GreatestCommonDivisor(_map.Length, _map.Max(line => line.Length));
-        Dictionary<Vector2Int, Face> lookup = new();
-        List<Face> _faces = new();
+        var startingFacePos = _startPosition / sideLength;
 
-        // set up faces with their bounds
-        foreach (var pos in Vector2Int.GetAllPointsBetween(0, 5, 0, 5))
+        // Corner IDs. These get rotated around as the cube rolls to simulate unfolding
+        int topLeft = 0, topRight = 1, botLeft = 2, botRight = 3; // the main 4 IDs that will be "stamped" to each face to line up corners/edges
+        int topLeftFront = 4, topRightFront = 5, botLeftFront = 6, botRightFront = 7; // the other IDs directly above (or in front) to form the cube
+
+        HashSet<Vector2Int> visited = new();
+        Dictionary<int, (Vector2Int Start, Vector2Int End, Vector2Int ExitDirection)> unmatchedPairs = new();
+        
+        Recurse(startingFacePos);
+
+        void Recurse(Vector2Int pos, Vector2Int dir = default)
         {
-            if (IsOutOfBounds(sideLength * pos)) continue;
-            var face = new Face(sideLength * pos.X, sideLength * (pos.X + 1) - 1, sideLength * pos.Y, sideLength * (pos.Y + 1) - 1);
+            visited.Add(pos);
+            RollCube(dir);
 
-            _faces.Add(face);
-            lookup.Add(pos, face);
+            var topLeftPos = sideLength * pos;
+            var topRightPos = topLeftPos + new Vector2Int(0, sideLength - 1);
+            var botLeftPos = topLeftPos + new Vector2Int(sideLength - 1, 0);
+            var botRightPos = botLeftPos + new Vector2Int(0, sideLength - 1);
+
+            MatchEdges(topLeftPos, topRightPos, topLeft, topRight, NORTH);
+            MatchEdges(topRightPos, botRightPos, topRight, botRight, EAST);
+            MatchEdges(botLeftPos, botRightPos, botLeft, botRight, SOUTH);
+            MatchEdges(topLeftPos, botLeftPos, topLeft, botLeft, WEST);
+
+            foreach (var direction in Vector2Int.CardinalDirections)
+            {
+                var nextPos = pos + direction;
+                if (IsOutOfBounds(sideLength * nextPos)) continue;
+                if (visited.Contains(nextPos)) continue;
+                Recurse(nextPos, direction);
+            }
+
+            RollCube(dir, undo: true);
         }
 
-        // connect faces together
-        foreach (var nodePos in lookup.Keys)
+        void MatchEdges(Vector2Int start, Vector2Int end, int startCornerId, int endCornerId, Vector2Int direction)
         {
-            var face = lookup[nodePos];
-            foreach (var forward in Vector2Int.CardinalDirections) // using "local/relative" terminology for each direction
+            if (startCornerId > endCornerId) (start, end) = (end, start); //to ensure we match the right corner pairs together
+            var edgeId = 1 << startCornerId | 1 << endCornerId; // unique value that only 2 faces will connect to
+
+            if (unmatchedPairs.TryGetValue(edgeId, out var pair))
             {
-                // no turns/folds required
-                var searchOrigin = nodePos + forward;
-                if (FoundConnection(face, forward, searchOrigin, -forward)) continue;
+                _edgeConnections[direction].Add(new(start, end, pair.Start, pair.End, -pair.ExitDirection));
+                _edgeConnections[pair.ExitDirection].Add(new(pair.Start, pair.End, start, end, -direction));
+            }
+            else
+                unmatchedPairs.Add(edgeId, (start, end, direction));
+        }
 
-                // 1 turn
-                var right = Vector2Int.RotatedRight(forward);
-                if (FoundConnection(face, forward, searchOrigin + right, -right)) continue;
-                if (FoundConnection(face, forward, searchOrigin - right, right)) continue;
-
-                // Note: this won't work. One configuration requires (1,-4) to be checked before (2,-4),
-                // but another requires the opposite. Will need to reconsider the algorithm for connecting faces to fit all 11 cube nets
-
-                // 4 turns
-                if (FoundConnection(face, forward, searchOrigin - 4 * forward, -forward)) continue;
-                if (FoundConnection(face, forward, searchOrigin + 2 * right - 4 * forward, -forward)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 2 * right - 4 * forward, -forward)) continue;
-                if (FoundConnection(face, forward, searchOrigin + 4 * right - 2 * forward, -forward)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 4 * right - 2 * forward, -forward)) continue;
-
-                // 2 turns
-                if (FoundConnection(face, forward, searchOrigin + 2 * right, forward)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 2 * right, forward)) continue;
-                if (FoundConnection(face, forward, searchOrigin + 2 * (right - forward), forward)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 2 * (right + forward), forward)) continue;
-
-                // 3 turns
-                if (FoundConnection(face, forward, searchOrigin + 3 * right, right)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 3 * right, -right)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 2 * forward + 3 * right, right)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 2 * forward - 3 * right, -right)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 4 * forward + right, right)) continue;
-                if (FoundConnection(face, forward, searchOrigin - 4 * forward - right, -right)) continue;
+        void RollCube(Vector2Int dir, bool undo = false)
+        {
+            switch (dir)
+            {
+                case { X:-1, Y: 0 }: if (undo) RollDown();  else RollUp();    break; // North
+                case { X: 0, Y: 1 }: if (undo) RollLeft();  else RollRight(); break; // East
+                case { X: 1, Y: 0 }: if (undo) RollUp();    else RollDown();  break; // South
+                case { X: 0, Y:-1 }: if (undo) RollRight(); else RollLeft();  break; // West
+                default: break;
             }
         }
 
-        bool FoundConnection(Face source, Vector2Int edgeDir, Vector2Int neighborPos, Vector2Int neighborEdgeDir)
+        void RollRight()
         {
-            if (!lookup.TryGetValue(neighborPos, out var neighbor)) return false;
-            source.AssignNeighbor(neighbor, edgeDir);
-            neighbor.AssignNeighbor(source, neighborEdgeDir);
-            // TODO: create connection conversion data for transferring position and direction info
-            return true;
+            (topLeft, topRight, topRightFront, topLeftFront) = (topRight, topRightFront, topLeftFront, topLeft);
+            (botLeft, botRight, botRightFront, botLeftFront) = (botRight, botRightFront, botLeftFront, botLeft);
+        }
+
+        void RollLeft()
+        {
+            (topLeft, topRight, topRightFront, topLeftFront) = (topLeftFront, topLeft, topRight, topRightFront);
+            (botLeft, botRight, botRightFront, botLeftFront) = (botLeftFront, botLeft, botRight, botRightFront);
+        }
+
+        void RollDown()
+        {
+            (topLeft, botLeft, botLeftFront, topLeftFront) = (botLeft, botLeftFront, topLeftFront, topLeft);
+            (topRight, botRight, botRightFront, topRightFront) = (botRight, botRightFront, topRightFront, topRight);
+        }
+
+        void RollUp()
+        {
+            (topLeft, botLeft, botLeftFront, topLeftFront) = (topLeftFront, topLeft, botLeft, botLeftFront);
+            (topRight, botRight, botRightFront, topRightFront) = (topRightFront, topRight, botRight, botRightFront);
         }
     }
 
-    private class Face
+    private class Edge
     {
-        public Bounds Boundary;
-        private Bounds _northEdge, _eastEdge, _southEdge, _westEdge;
+        private readonly Vector2Int _fromStart, _fromEnd;
+        private readonly Vector2Int _toStart, _toEnd;
 
-        // connected neighbors
-        public Face North { get; private set; }
-        public Face East { get; private set; }
-        public Face South { get; private set; }
-        public Face West { get; private set; }
+        public readonly Vector2Int NextDirection;
 
-        public Face(int xMin, int xMax, int yMin, int yMax)
+        public Edge(Vector2Int fromStart, Vector2Int fromEnd, Vector2Int toStart, Vector2Int toEnd, Vector2Int nextDir)
         {
-            Boundary = new Bounds(xMin, xMax, yMin, yMax);
-            _northEdge = new Bounds(xMin, xMin, yMin, yMax);
-            _eastEdge = new Bounds(xMin, xMax, yMax, yMax);
-            _southEdge = new Bounds(xMax, xMax, yMin, yMax);
-            _westEdge = new Bounds(xMin, xMax, yMin, yMin);
+            _fromStart = fromStart;
+            _fromEnd = fromEnd;
+            _toStart = toStart;
+            _toEnd = toEnd;
+            NextDirection = nextDir;
         }
 
-        public void AssignNeighbor(Face neighbor, Vector2Int edgeDir)
+        public bool Contains(Vector2Int pos)
         {
-            if (edgeDir == Vector2Int.N) North = neighbor;
-            else if (edgeDir == Vector2Int.E) East = neighbor;
-            else if (edgeDir == Vector2Int.S) South = neighbor;
-            else if (edgeDir == Vector2Int.W) West = neighbor;
+            if (_fromStart.X == _fromEnd.X)
+                return pos.X == _fromStart.X && pos.Y >= Math.Min(_fromStart.Y, _fromEnd.Y) && pos.Y <= Math.Max(_fromStart.Y, _fromEnd.Y);
+            if (_fromStart.Y == _fromEnd.Y)
+                return pos.Y == _fromStart.Y && pos.X >= Math.Min(_fromStart.X, _fromEnd.X) && pos.X <= Math.Max(_fromStart.X, _fromEnd.X);
+            return false;
         }
 
-        // create and assign connected neighbors
-        // consider a connection class that handles the transfer between two edges
+        public Vector2Int GetNextPosition(Vector2Int pos) => Vector2Int.Map(_fromStart, _fromEnd, _toStart, _toEnd, pos);
     }
+
+    #endregion Connecting Edges For a Cube Net
 }
