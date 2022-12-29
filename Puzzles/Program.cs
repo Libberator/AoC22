@@ -2,8 +2,8 @@
 using System;
 using System.Diagnostics;
 
-const int START_DAY = 1;
-const int STOP_DAY = 25;
+const int START_DAY = 5;
+const int STOP_DAY = 5;
 
 ILogger logger = new ConsoleLogger();
 

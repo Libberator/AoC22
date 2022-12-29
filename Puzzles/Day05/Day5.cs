@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace AoC22;
@@ -14,7 +13,6 @@ public class Day5 : Puzzle
 
     public override void Setup()
     {
-        _instructions.Clear();
         for (int i = 1; i <= 9; i++)
             _data[i] = new();
 
@@ -31,16 +29,15 @@ public class Day5 : Puzzle
                     continue;
                 }
 
-                // Important indices: 1, 5, 9, 13, 17, 21, 25, 29, 33
+                // Crate chars are found on indices: 1, 5, 9, 13, 17, 21, 25, 29, 33
                 for (int i = 1; i < line.Length; i += 4)
                     if (line[i] != ' ')
                         _data[((i - 1) / 4) + 1].Push(line[i]);
-                // Side note: this also adds the numbers 1-9 to the stack
             }
             else
             {
-                var digits = pattern.Matches(line).Select(m => int.Parse(m.ValueSpan)).ToArray();
-                _instructions.Add(new Move(digits[0], digits[1], digits[2]));
+                var matches = pattern.Matches(line);
+                _instructions.Add(new Move(int.Parse(matches[0].ValueSpan), int.Parse(matches[1].ValueSpan), int.Parse(matches[2].ValueSpan)));
             }
         }
     }
@@ -77,9 +74,9 @@ public class Day5 : Puzzle
     // We make a copy of it so that we're not affecting the original and can run both Parts and also do performance tests
     private static Dictionary<int, Stack<char>> CopyData(IDictionary<int, Stack<char>> source)
     {
-        Dictionary<int, Stack<char>> copy = new(9);
+        Dictionary<int, Stack<char>> copy = new(source.Count);
         foreach (var kvp in source)
-            copy[kvp.Key] = new(kvp.Value); // this correctly *reverses* the order for the stack copy
+            copy[kvp.Key] = new Stack<char>(kvp.Value); // this correctly *reverses* the order for the stack copy
         return copy;
     }
 
