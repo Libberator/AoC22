@@ -33,7 +33,7 @@ public class Day20 : Puzzle
 
         for (int i = 0; i < 10; i++)
             MixByValue(data, multiplier);
-        
+
         var result = GetGroveCoordinates(data);
         _logger.Log(result * (long)decryptionKey); // cast to long to avoid integer overflow
     }

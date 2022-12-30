@@ -1,4 +1,5 @@
-﻿using AoC22;
+﻿#define USE_STOPWATCH
+using AoC22;
 using System;
 using System.Diagnostics;
 
@@ -21,6 +22,7 @@ for (int i = START_DAY; i <= STOP_DAY; i++)
         continue;
     }
 
+#if USE_STOPWATCH
     var overallTimer = new Stopwatch();
     var setupTimer = new Stopwatch();
     var part1Timer = new Stopwatch();
@@ -40,6 +42,11 @@ for (int i = START_DAY; i <= STOP_DAY; i++)
     part2Timer.Stop();
     overallTimer.Stop();
     logger.Log($"Setup: {setupTimer.ElapsedMilliseconds}ms. Part1: {part1Timer.ElapsedMilliseconds}ms. Part2: {part2Timer.ElapsedMilliseconds}ms. Total: {overallTimer.ElapsedMilliseconds}ms");
+#else
+    puzzle.Setup();
+    puzzle.SolvePart1();
+    puzzle.SolvePart2();
+#endif
 }
 
 #if !DEBUG

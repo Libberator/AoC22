@@ -46,13 +46,13 @@ public class Day24 : Puzzle
         }
     }
 
-    public override void SolvePart1() // 14.9 seconds A* (46.7s floodfill)
+    public override void SolvePart1() // 3.5 seconds
     {
         _minutesTraveled = FindQuickestPath(_start, _end);
         _logger.Log(_minutesTraveled); // 332
     }
 
-    public override void SolvePart2() // 20 seconds A* (92s floodfill)
+    public override void SolvePart2() // 5 seconds
     {
         _minutesTraveled = FindQuickestPath(_end, _start, _minutesTraveled);
         _minutesTraveled = FindQuickestPath(_start, _end, _minutesTraveled);
@@ -66,12 +66,12 @@ public class Day24 : Puzzle
 
         while (toSearch.Count > 0)
         {
-            var current = toSearch[0]; // Min;
+            var current = toSearch[0];
             foreach (var next in toSearch) // TODO: try to limit the amount of items we iterate through
                 if (next.Cost < current.Cost || (next.Cost == current.Cost && next.Minute < current.Minute))
                     current = next;
 
-            toSearch.Remove(current); //RemoveAt(0);
+            toSearch.Remove(current);
             processed.Add(current);
 
             var nextMinute = current.Minute + 1;
@@ -97,7 +97,6 @@ public class Day24 : Puzzle
         return 0;
     }
 
-    // TODO: consider caching these results into a lookup for quicker checks
     private bool IsValidMovePosition(Vector2Int pos, int minute)
     {
         if (_upCol2RowIndices.TryGetValue(pos.Y, out var rowIndicesUp) &&

@@ -12,9 +12,9 @@ public class Day23 : Puzzle
     private static readonly Vector2Int[] SOUTH_GROUP = new Vector2Int[3] { Vector2Int.S, Vector2Int.SE, Vector2Int.SW };
     private static readonly Vector2Int[] WEST_GROUP = new Vector2Int[3] { Vector2Int.W, Vector2Int.NW, Vector2Int.SW };
     private static readonly Vector2Int[] EAST_GROUP = new Vector2Int[3] { Vector2Int.E, Vector2Int.NE, Vector2Int.SE };
-    
-    private static readonly Queue<Vector2Int[]> _regionsToCheck = new( new[] { NORTH_GROUP, SOUTH_GROUP, WEST_GROUP, EAST_GROUP } );
-    
+
+    private static readonly Queue<Vector2Int[]> _regionsToCheck = new(new[] { NORTH_GROUP, SOUTH_GROUP, WEST_GROUP, EAST_GROUP });
+
     private readonly HashSet<Vector2Int> _positions = new();
     private readonly Dictionary<Vector2Int, int> _targetCount = new();
     private readonly Dictionary<Vector2Int, Vector2Int> _proposedMoves = new();
@@ -40,7 +40,7 @@ public class Day23 : Puzzle
         var bounds = new Bounds();
         foreach (var pos in _positions)
             bounds.Encapsulate(pos);
-        
+
         var area = (bounds.Width + 1) * (bounds.Height + 1);
         var elves = _positions.Count;
         _logger.Log(area - elves);
@@ -49,7 +49,7 @@ public class Day23 : Puzzle
     public override void SolvePart2()
     {
         var roundNumber = 11;
-        while(DoRound(_positions)) roundNumber++;
+        while (DoRound(_positions)) roundNumber++;
         _logger.Log(roundNumber);
     }
 

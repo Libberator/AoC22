@@ -50,7 +50,7 @@ public class Day19 : Puzzle
             geodeProduct *= StartCycles(32, blueprint);
         _logger.Log(geodeProduct);
     }
-    
+
     private int StartCycles(int minutes, Blueprint blueprint)
     {
         _currentMax = 0;
@@ -93,7 +93,7 @@ public class Day19 : Puzzle
         reqdMinutes = 1;
         var cost = blueprint.RobotCost(materialIndex);
         if (inventory >= cost) return true;
-        
+
         for (int i = 0; i < 4; i++)
         {
             if (cost[i] > 0)
