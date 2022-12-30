@@ -42,7 +42,7 @@ public class Day12 : Puzzle
     public override void SolvePart1()
     {
         foreach (var point in _grid) point.InitNeighbors(_grid, IsValidNeighbor);
-        var path = Pathfinding.FindPath(_startPoint, _endPoint);
+        var path = Pathfinding.FindPath_AStar(_startPoint, _endPoint);
         _logger.Log(path.Count);
     }
 
@@ -50,7 +50,7 @@ public class Day12 : Puzzle
     {
         // Reassign the neighbors to do a floodfill starting from the End point until we reach an 'a'.
         foreach (var point in _grid) point.InitNeighbors(_grid, IsValidNeighborReverse);
-        var path = Pathfinding.FloodFillUntil(_endPoint, p => p.Value == 'a');
+        var path = Pathfinding.FindPath_Dijkstra(_endPoint, p => p.Value == 'a');
         _logger.Log(path.Count);
     }
 

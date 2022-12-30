@@ -11,7 +11,8 @@ public class Day24 : Puzzle
     private readonly Dictionary<int, List<int>> _leftRow2ColIndices = new();
     private readonly Dictionary<int, List<int>> _rightRow2ColIndices = new();
     private Bounds _boundary;
-    private Vector2Int _start, _end;
+    private Vector2Int _start = new(-1, 0);
+    private Vector2Int _end;
     private int _minutesTraveled = 0;
 
     public Day24(ILogger logger, string path) : base(logger, path) { }
@@ -20,7 +21,6 @@ public class Day24 : Puzzle
     {
         var data = ReadAllLines();
         _boundary = new Bounds(0, data.Length - 3, 0, data[0].Length - 3);
-        _start = new Vector2Int(_boundary.XMin - 1, _boundary.YMin);
         _end = new Vector2Int(_boundary.XMax + 1, _boundary.YMax);
 
         for (int row = 1; row < data.Length - 1; row++)
@@ -46,31 +46,36 @@ public class Day24 : Puzzle
         }
     }
 
-    public override void SolvePart1() // 3.5 seconds
+    public override void SolvePart1()
     {
         _minutesTraveled = FindQuickestPath(_start, _end);
         _logger.Log(_minutesTraveled); // 332
     }
 
-    public override void SolvePart2() // 5 seconds
+    public override void SolvePart2()
     {
         _minutesTraveled = FindQuickestPath(_end, _start, _minutesTraveled);
         _minutesTraveled = FindQuickestPath(_start, _end, _minutesTraveled);
         _logger.Log(_minutesTraveled); // 942
     }
 
+    private record struct State(Vector2Int Pos, int Minute, int Cost);
+
+    private class StateComparer : IComparer<State>
+    {
+        public int Compare(State current, State next) => current.Cost != next.Cost ? current.Cost.CompareTo(next.Cost) :
+            current.Minute != next.Minute ? current.Minute.CompareTo(next.Minute) : 
+            current.Pos.GetHashCode().CompareTo(next.Pos.GetHashCode());
+    }
+
     private int FindQuickestPath(Vector2Int start, Vector2Int end, int startingMinutes = 0)
     {
-        List<(int Minute, Vector2Int Pos, int Cost)> toSearch = new() { (startingMinutes, start, 0) };
-        HashSet<(int, Vector2Int, int)> processed = new();
+        SortedSet<State> toSearch = new(new StateComparer()) { new State(start, startingMinutes, 0) };
+        HashSet<State> processed = new();
 
         while (toSearch.Count > 0)
         {
-            var current = toSearch[0];
-            foreach (var next in toSearch) // TODO: try to limit the amount of items we iterate through
-                if (next.Cost < current.Cost || (next.Cost == current.Cost && next.Minute < current.Minute))
-                    current = next;
-
+            var current = toSearch.Min;
             toSearch.Remove(current);
             processed.Add(current);
 
@@ -83,16 +88,16 @@ public class Day24 : Puzzle
                 if (nextPos == end) return nextMinute;
 
                 if (!_boundary.Contains(nextPos)) continue;
-                var dist = nextPos.DistanceManhattanTo(end);
-                var nextMove = (nextMinute, nextPos, nextMinute + dist);
                 if (!IsValidMovePosition(nextPos, nextMinute)) continue;
-                if (toSearch.Contains(nextMove) || processed.Contains(nextMove)) continue;
-                toSearch.Add(nextMove);
+                var dist = nextPos.DistanceManhattanTo(end);
+                var nextState = new State(nextPos, nextMinute, nextMinute + dist);
+                if (processed.Contains(nextState) || toSearch.Contains(nextState)) continue;
+                toSearch.Add(nextState);
             }
-
-            var stayStill = (nextMinute, pos, current.Cost + 1);
-            if (IsValidMovePosition(pos, nextMinute) && !toSearch.Contains(stayStill) && !processed.Contains(stayStill))
-                toSearch.Add(stayStill);
+            if (!IsValidMovePosition(pos, nextMinute)) continue;
+            var stationaryState = new State(pos, nextMinute, current.Cost + 1);
+            if (processed.Contains(stationaryState) || toSearch.Contains(stationaryState)) continue;
+            toSearch.Add(stationaryState);
         }
         return 0;
     }

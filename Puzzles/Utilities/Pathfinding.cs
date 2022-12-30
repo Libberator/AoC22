@@ -11,16 +11,16 @@ public static class Pathfinding
     /// A* Pathfinding. Returns a list of nodes in reverse order from the target destination (included) to the starting point (excluded).
     /// Before calling this, ensure the Nodes' Neighbors have already been populated.
     /// </summary>
-    public static List<Node> FindPath(Node start, Node end)
+    public static List<Node> FindPath_AStar(Node start, Node end)
     {
-        var toSearch = new OrderedList<Node>(new AStarHeuristic()) { start };
+        SortedSet<Node> toSearch = new(new AStarHeuristic()) { start };
         HashSet<Node> processed = new();
 
         while (toSearch.Count > 0)
         {
             var current = toSearch.Min;
             
-            toSearch.RemoveAt(0);
+            toSearch.Remove(current);
             processed.Add(current);
 
             if (current == end)
@@ -52,30 +52,33 @@ public static class Pathfinding
 
     private class AStarHeuristic : IComparer<Node>
     {
-        public int Compare(Node current, Node next) => current.F != next.F ? current.F.CompareTo(next.F) : current.H.CompareTo(next.H);
+        public int Compare(Node current, Node next) => current.F != next.F ? current.F.CompareTo(next.F) : 
+            current.H != next.H ? current.H.CompareTo(next.H) :
+            current.Pos.GetHashCode().CompareTo(next.Pos.GetHashCode());
     }
 
     #endregion A-Star
 
-    #region Dijkstra (if weighted) FloodFill/BFS (if unweighted)
+    #region Dijkstra / FloodFill/BFS
 
     /// <summary>
-    /// Floodfill (a.k.a. Breadth-First Search). Use when you don't have a specific singular target in mind.
+    /// If the graph is unweighted (same cost to go to each node), then this is just Floodfill (a.k.a. Breadth-First Search). 
+    /// If it's a weighted graph, then this is Dijkstra. Use this when you don't have a specific singular target in mind.
     /// Returns a list of nodes in reverse order from the node passing the target condition (included) to the starting point (excluded).
     /// </summary>
-    public static List<Node> FloodFillUntil<T>(T start, Predicate<T> targetCondition) where T : Node
+    public static List<Node> FindPath_Dijkstra<T>(T start, Predicate<T> endCondition) where T : Node
     {
-        var toSearch = new OrderedList<Node>(new DijkstraHeuristic()) { start };
+        SortedSet<Node> toSearch = new(new DijkstraHeuristic()) { start };
         HashSet<Node> processed = new();
 
         while (toSearch.Count > 0)
         {
             var current = toSearch.Min;
-
-            toSearch.RemoveAt(0); 
+            
+            toSearch.Remove(current);
             processed.Add(current);
 
-            if (targetCondition(current as T))
+            if (endCondition(current as T))
                 return BacktrackRoute(current, start);
 
             foreach (var neighbor in current.Neighbors)
@@ -101,12 +104,13 @@ public static class Pathfinding
 
     private class DijkstraHeuristic : IComparer<Node>
     {
-        public int Compare(Node current, Node next) => current.G.CompareTo(next.G);
+        public int Compare(Node current, Node next) => current.G != next.G ? current.G.CompareTo(next.G) : 
+            current.Pos.GetHashCode().CompareTo(next.Pos.GetHashCode());
     }
 
-    #endregion Dijkstra (if weighted) FloodFill/BFS (if unweighted)
+    #endregion Dijkstra / FloodFill/BFS
 
-    // TODO: Add the following...
+    // TODO: Convert these methods to be more flexible - consider interfaces. And then add the following...
     // Depth First Search (DFS)
     // Best-First
     // Bi-directional A*
@@ -117,14 +121,14 @@ public static class Pathfinding
     #region Shared Methods
 
     /// <summary>Returns a list of nodes in reverse order from the target destination (included) to the starting point (excluded).</summary>
-    private static List<T> BacktrackRoute<T>(T target, T start) where T : Node
+    private static List<Node> BacktrackRoute(Node target, Node start)
     {
-        var path = new List<T>();
+        var path = new List<Node>();
         var currentNode = target;
         while (currentNode != start)
         {
             path.Add(currentNode);
-            currentNode = currentNode.Connection as T;
+            currentNode = currentNode.Connection;
         }
         return path;
     }
