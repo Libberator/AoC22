@@ -9,7 +9,7 @@ public class Day4 : Puzzle
 
     public Day4(ILogger logger, string path) : base(logger, path) { }
 
-    public override void Setup() => _data = ReadFromFile().Select(line => CreateBounds(line.Split('-', ',').ConvertToInts())).ToArray();
+    public override void Setup() => _data = ReadFromFile().Select(line => CreateBounds(line.Split('-', ',').ToIntArray())).ToArray();
     public override void SolvePart1() => _logger.Log(_data.Count(pair => pair.A.Contains(pair.B) || pair.B.Contains(pair.A)));
     public override void SolvePart2() => _logger.Log(_data.Count(pair => pair.A.Overlaps(pair.B)));
 

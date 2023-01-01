@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace System.Numerics;
 
@@ -165,16 +166,15 @@ public struct Vector2Int : IEquatable<Vector2Int>, IFormattable
     public static int DistanceSquared(Vector2Int a, Vector2Int b) => (b.X - a.X) * (b.X - a.X) + (b.Y - a.Y) * (b.Y - a.Y);
     /// <summary>Returns the dot product of two vectors.</summary>
     public static int Dot(Vector2Int a, Vector2Int b) => a.X * b.X + a.Y * b.Y;
-    /// <summary>Returns all points in a rectangle (or line) between the corner points <paramref name="from"/> and <paramref name="to"/>, inclusive.</summary>
+    /// <summary>Returns all points in a rectangle (or line) from the min corner to the max corner, inclusive.</summary>
     public static IEnumerable<Vector2Int> GetAllPointsBetween(Vector2Int from, Vector2Int to)
     {
         int minX = Math.Min(from.X, to.X);
         int maxX = Math.Max(from.X, to.X);
         int minY = Math.Min(from.Y, to.Y);
         int maxY = Math.Max(from.Y, to.Y);
-        for (int x = minX; x <= maxX; x++)
-            for (int y = minY; y <= maxY; y++)
-                yield return new Vector2Int(x, y);
+        foreach (var point in GetAllPointsBetween(minX, maxX, minY, maxY))
+            yield return point;
     }
     /// <summary>Returns all points in a rectangle (or line) between the min and max points, inclusive.</summary>
     public static IEnumerable<Vector2Int> GetAllPointsBetween(int minX, int maxX, int minY, int maxY)

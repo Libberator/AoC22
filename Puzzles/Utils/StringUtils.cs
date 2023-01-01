@@ -6,10 +6,10 @@ namespace AoC22;
 
 public static partial class Utils
 {
-    public static int[] ConvertToInts(this string[] data) => Array.ConvertAll(data, int.Parse);
-    public static long[] ConvertToLongs(this string[] data) => Array.ConvertAll(data, long.Parse);
-    public static ulong[] ConvertToULongs(this string[] data) => Array.ConvertAll(data, ulong.Parse);
-    public static BigInteger[] ConvertToBigInts(this string[] data) => Array.ConvertAll(data, BigInteger.Parse);
+    public static int[] ToIntArray(this string[] data) => Array.ConvertAll(data, int.Parse);
+    public static long[] ToLongArray(this string[] data) => Array.ConvertAll(data, long.Parse);
+    public static ulong[] ToULongArray(this string[] data) => Array.ConvertAll(data, ulong.Parse);
+    public static BigInteger[] ToBigIntArray(this string[] data) => Array.ConvertAll(data, BigInteger.Parse);
     public static int BinaryToInt(this string s) => Convert.ToInt32(s, 2);
     public static long BinaryToLong(this string s) => Convert.ToInt64(s, 2);
     public static int HexToInt(this string s) => Convert.ToInt32(s, 16);

@@ -2,14 +2,7 @@
 
 namespace AoC22;
 
-public interface IDay
-{
-    public void Setup();
-    public void SolvePart1();
-    public void SolvePart2();
-}
-
-public abstract class Puzzle : IDay
+public abstract class Puzzle
 {
     protected readonly ILogger _logger;
     protected readonly string _path;

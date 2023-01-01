@@ -11,15 +11,15 @@ public static class Pathfinding
     /// A* Pathfinding. Returns a list of nodes in reverse order from the target destination (included) to the starting point (excluded).
     /// Before calling this, ensure the Nodes' Neighbors have already been populated.
     /// </summary>
-    public static List<Node> FindPath_AStar(Node start, Node end)
+    public static List<INode> FindPath_AStar(INode start, INode end)
     {
-        SortedSet<Node> toSearch = new(new AStarHeuristic()) { start };
-        HashSet<Node> processed = new();
+        SortedSet<INode> toSearch = new(new AStarHeuristic()) { start };
+        HashSet<INode> processed = new();
 
         while (toSearch.Count > 0)
         {
             var current = toSearch.Min;
-            
+
             toSearch.Remove(current);
             processed.Add(current);
 
@@ -37,24 +37,24 @@ public static class Pathfinding
                 {
                     toSearch.Remove(neighbor);
 
-                    neighbor.SetG(costToNeighbor);
-                    neighbor.SetConnection(current);
+                    neighbor.G = costToNeighbor;
+                    neighbor.Connection = current;
 
                     if (!inSearch)
-                        neighbor.SetH(neighbor.GetDistance(end));
-                    
+                        neighbor.H = neighbor.GetHCostTo(end);
+
                     toSearch.Add(neighbor);
                 }
             }
         }
-        return new List<Node>();
+        return new List<INode>();
     }
 
-    private class AStarHeuristic : IComparer<Node>
+    private class AStarHeuristic : IComparer<INode>
     {
-        public int Compare(Node current, Node next) => current.F != next.F ? current.F.CompareTo(next.F) : 
+        public int Compare(INode current, INode next) => current.F != next.F ? current.F.CompareTo(next.F) :
             current.H != next.H ? current.H.CompareTo(next.H) :
-            current.Pos.GetHashCode().CompareTo(next.Pos.GetHashCode());
+            current.GetHashCode().CompareTo(next.GetHashCode()); // SortedSet requirement to differentiate ties
     }
 
     #endregion A-Star
@@ -66,19 +66,19 @@ public static class Pathfinding
     /// If it's a weighted graph, then this is Dijkstra. Use this when you don't have a specific singular target in mind.
     /// Returns a list of nodes in reverse order from the node passing the target condition (included) to the starting point (excluded).
     /// </summary>
-    public static List<Node> FindPath_Dijkstra<T>(T start, Predicate<T> endCondition) where T : Node
+    public static List<INode> FindPath_Dijkstra(INode start, Predicate<INode> endCondition)
     {
-        SortedSet<Node> toSearch = new(new DijkstraHeuristic()) { start };
-        HashSet<Node> processed = new();
+        SortedSet<INode> toSearch = new(new DijkstraHeuristic()) { start };
+        HashSet<INode> processed = new();
 
         while (toSearch.Count > 0)
         {
             var current = toSearch.Min;
-            
+
             toSearch.Remove(current);
             processed.Add(current);
 
-            if (endCondition(current as T))
+            if (endCondition(current))
                 return BacktrackRoute(current, start);
 
             foreach (var neighbor in current.Neighbors)
@@ -92,20 +92,20 @@ public static class Pathfinding
                 {
                     toSearch.Remove(neighbor);
 
-                    neighbor.SetG(costToNeighbor);
-                    neighbor.SetConnection(current);
+                    neighbor.G = costToNeighbor;
+                    neighbor.Connection = current;
 
                     toSearch.Add(neighbor);
                 }
             }
         }
-        return new List<Node>();
+        return new List<INode>();
     }
 
-    private class DijkstraHeuristic : IComparer<Node>
+    private class DijkstraHeuristic : IComparer<INode>
     {
-        public int Compare(Node current, Node next) => current.G != next.G ? current.G.CompareTo(next.G) : 
-            current.Pos.GetHashCode().CompareTo(next.Pos.GetHashCode());
+        public int Compare(INode current, INode next) => current.G != next.G ? current.G.CompareTo(next.G) :
+            current.GetHashCode().CompareTo(next.GetHashCode()); // SortedSet requirement to differentiate ties
     }
 
     #endregion Dijkstra / FloodFill/BFS
@@ -121,9 +121,9 @@ public static class Pathfinding
     #region Shared Methods
 
     /// <summary>Returns a list of nodes in reverse order from the target destination (included) to the starting point (excluded).</summary>
-    private static List<Node> BacktrackRoute(Node target, Node start)
+    private static List<INode> BacktrackRoute(INode target, INode start)
     {
-        var path = new List<Node>();
+        var path = new List<INode>();
         var currentNode = target;
         while (currentNode != start)
         {

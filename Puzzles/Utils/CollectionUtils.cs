@@ -71,4 +71,7 @@ public static partial class Utils
 
     /// <summary>This will return 1 column of data from a 2D jagged array into a single array.</summary>
     public static T[] GetColumnData<T>(this T[][] values, int column) => values.Select(x => x[column]).ToArray();
+
+    public static string JoinAsString<T>(this IEnumerable<T> source, string delimiter = ", ") =>
+        string.Join(delimiter, source);
 }

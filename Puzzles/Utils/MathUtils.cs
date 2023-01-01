@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
-using System;
 
 namespace AoC22;
 
@@ -74,7 +74,7 @@ public static partial class Utils
     public static int GreatestCommonDivisor(int a, int b) => b > 0 ? GreatestCommonDivisor(b, a % b) : Math.Abs(a);
 
     /// <summary>Returns the least common multiple of the two arguments.</summary>
-    public static int LeastCommonMultiple(int a, int b) => (a * b) / GreatestCommonDivisor(a, b);
+    public static int LeastCommonMultiple(int a, int b) => a * b / GreatestCommonDivisor(a, b);
 
     /// <summary>
     /// Computes `n mod m`. This is different than the `%` operator in the case of
