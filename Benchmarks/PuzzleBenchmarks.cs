@@ -12,13 +12,13 @@ public class PuzzleBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        _path = Utils.FullPath(24);
+        _path = Utils.FullPath(19);
     }
 
     [Benchmark]
     public void MyPuzzle()
     {
-        var puzzle = new Day24(_logger, _path);
+        var puzzle = new Day19(_logger, _path);
         puzzle.Setup();
         puzzle.SolvePart1();
         puzzle.SolvePart2();

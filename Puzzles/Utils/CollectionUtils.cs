@@ -27,6 +27,7 @@ public static partial class Utils
     public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue defVal) =>
         dict.TryGetValue(key, out TValue value) ? value : defVal;
 
+    // Note: If the collection is already sorted, then Middle is the same as Median
     /// <summary>Returns the middle-most value, favoring the end for collections of even quantities.</summary>
     public static T Middle<T>(this IList<T> list) => list.ElementAt(list.Count / 2);
     /// <summary>Returns the middle-most value, favoring the end for collections of even quantities.</summary>

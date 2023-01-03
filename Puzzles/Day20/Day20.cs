@@ -5,16 +5,17 @@ namespace AoC22;
 
 public class Day20 : Puzzle
 {
-    private List<Wrapper<int>> _data;
+    private Wrapper<int>[] _data;
     private Wrapper<int> _marker;
     private int _count;
+
     public Day20(ILogger logger, string path) : base(logger, path) { }
 
     public override void Setup()
     {
-        _data = ReadAllLines().Select(line => new Wrapper<int>(int.Parse(line))).ToList();
+        _data = ReadAllLines().Select(line => new Wrapper<int>(int.Parse(line))).ToArray();
         _marker = _data.First(i => i.Value == 0);
-        _count = _data.Count;
+        _count = _data.Length;
     }
 
     public override void SolvePart1()
@@ -60,7 +61,7 @@ public class Day20 : Puzzle
     }
 
     // This is so that we can have ints as a reference type for quick IndexOf lookups
-    private class Wrapper<T>
+    private class Wrapper<T> where T : struct
     {
         public readonly T Value;
         public Wrapper(T value) => Value = value;

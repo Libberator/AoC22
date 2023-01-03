@@ -4,22 +4,28 @@ using System.Numerics;
 
 namespace AoC22;
 
-public class Grid<T>
+public interface IGrid<T>
 {
-    private readonly T[][] _data;
-    private readonly Dictionary<Vector2Int, Node<T>> _nodes = new();
-    private readonly Bounds _bounds;
-
     /// <summary>
     /// Extra constraint to determine if two nodes are connected. 
     /// First argument is primary node, second argument is a prospective neighbor.
     /// </summary>
-    public Func<Node<T>, Node<T>, bool> AreValidNeighbors { get; set; } = (node, neighbor) => true;
-    /// <summary>Directions to search for neighbors. Default is Cardinal (N,E,S,W).</summary>
-    public Vector2Int[] NeighborDirections { get; set; } = Vector2Int.CardinalDirections;
+    public Func<INode<T>, INode<T>, bool> AreValidNeighbors { get; set; }
+    /// <summary>Directions to search for neighbors.</summary>
+    public Vector2Int[] NeighborDirections { get; set; }
+    public IEnumerable<INode<T>> GetNeighborsOf(INode<T> node);
+}
 
-    public Grid(T[][] data, Func<Node<T>, Node<T>, bool> validNeighborCheck, Vector2Int[] neighborDirections) : this(data, neighborDirections) => AreValidNeighbors = validNeighborCheck;
-    public Grid(T[][] data, Func<Node<T>, Node<T>, bool> validNeighborCheck) : this(data) => AreValidNeighbors = validNeighborCheck;
+public class Grid<T> : IGrid<T>
+{
+    private readonly T[][] _data;
+    private readonly Dictionary<Vector2Int, INode<T>> _nodes = new();
+    private readonly Bounds _bounds;
+
+    public virtual Func<INode<T>, INode<T>, bool> AreValidNeighbors { get; set; } = (node, neighbor) => true;
+    public virtual Vector2Int[] NeighborDirections { get; set; } = Vector2Int.CardinalDirections;
+
+    public Grid(T[][] data, Func<INode<T>, INode<T>, bool> validNeighborCheck) : this(data) => AreValidNeighbors = validNeighborCheck;
     public Grid(T[][] data, Vector2Int[] neighborDirections) : this(data) => NeighborDirections = neighborDirections;
     public Grid(T[][] data) // assumes a rectangular grid, despite being a jagged array
     {
@@ -33,14 +39,14 @@ public class Grid<T>
         set => _data[row][col] = value;
     }
 
-    public virtual IEnumerable<Node<T>> GetNeighborsOf(Node<T> node)
+    public virtual IEnumerable<INode<T>> GetNeighborsOf(INode<T> node)
     {
         foreach (var dir in NeighborDirections)
             if (TryGetNode(node.Pos + dir, out var neighbor) && AreValidNeighbors(node, neighbor))
                 yield return neighbor;
     }
 
-    public virtual bool TryGetNode(Vector2Int pos, out Node<T> node)
+    public virtual bool TryGetNode(Vector2Int pos, out INode<T> node)
     {
         node = default;
         if (!_bounds.Contains(pos)) return false;
@@ -53,28 +59,5 @@ public class Grid<T>
         return true;
     }
 
-    public bool AddNode(Node<T> node) => _nodes.TryAdd(node.Pos, node);
+    public bool AddNode(INode<T> node) => _nodes.TryAdd(node.Pos, node);
 }
-
-/*
-    TODO Features:
-    Slice (for copy or cut), top-left pos, width, height
-    Paste (and similarly, Fill)
-    FlipX/FlipY
-    Rotate
-    Shift
-    Get, Set
-    *, +, -
-    Foreach
-*/
-
-/*
-    Grid - to - graph
-    Add a pretty drawer for multi-dimensional array
-    characters for empty space / wall / node / etc
-    A---C---F
-    |   |   |
-    |   D---G
-    |   |
-    B---E 
-*/

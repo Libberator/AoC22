@@ -2,6 +2,7 @@
 
 namespace AoC22;
 
+/// <summary>Base Class for every puzzle.</summary>
 public abstract class Puzzle
 {
     protected readonly ILogger _logger;

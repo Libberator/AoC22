@@ -110,14 +110,6 @@ public static class Pathfinding
 
     #endregion Dijkstra / FloodFill/BFS
 
-    // TODO: Convert these methods to be more flexible - consider interfaces. And then add the following...
-    // Depth First Search (DFS)
-    // Best-First
-    // Bi-directional A*
-    // Iterative Deeping A* (IDA*)
-    // Minimum Spanning Tree (MSP)
-    // For reference: https://github.com/brean/python-pathfinding 
-
     #region Shared Methods
 
     /// <summary>Returns a list of nodes in reverse order from the target destination (included) to the starting point (excluded).</summary>
@@ -134,4 +126,12 @@ public static class Pathfinding
     }
 
     #endregion Shared Methods
+
+    // TODO: Consider adding the following...
+    // Depth First Search (DFS)
+    // Best-First
+    // Bi-directional A*
+    // Iterative Deeping A* (IDA*)
+    // Minimum Spanning Tree (MSP)
+    // For reference: https://github.com/brean/python-pathfinding 
 }
